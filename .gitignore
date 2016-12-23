@@ -87,3 +87,13 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+*.iml
+.idea
+Behavioral Cloning.app
+data/training
+IMG
+# driving_log.csv
+*.app
+udacity_data.zip
+IMG*
