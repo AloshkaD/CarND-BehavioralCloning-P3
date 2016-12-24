@@ -92,8 +92,7 @@ ENV/
 .idea
 Behavioral Cloning.app
 data/training
-IMG
+IMG1
 # driving_log.csv
 *.app
 udacity_data.zip
-IMG*
