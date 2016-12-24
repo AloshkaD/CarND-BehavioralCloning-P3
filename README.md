@@ -26,7 +26,7 @@ I present to you in this project my very own convolutional neural network. Howev
 
 Here is an early diagram I drew on my whiteboard wall in my home office:
 
-![Data Collection, Train, Test Lifecycle](https://zimmerfamily.slack.com/files/matthew/F3DAEHU9K/fullsizerender.jpg)
+![Data Collection, Train, Test Lifecycle](docs/images/data_collect_train_test_lifecycle.jpg)
 
 More specifically, here are some resources and academic papers I thoroughly read and digested to ultimately use as inspiration for my final network architecture.
 
