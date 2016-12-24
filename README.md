@@ -37,6 +37,7 @@ More specifically, here are some resources and academic papers I thoroughly read
 [Identification of Driver Steering and Speed Control](http://www2.eng.cam.ac.uk/~djc13/vehicledynamics/downloads/Odhams_PhDthesis_Sep06.pdf)  
 [Feature Scaling by Andrew Ng](https://youtu.be/aJmorz9gD4g)  
 [Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift](https://arxiv.org/abs/1502.03167)  
+[Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980v8)  
 
 
 Here is an early diagram I drew on my whiteboard wall in my home office: 
