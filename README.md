@@ -25,7 +25,9 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 
 ##### Overview
 
-I present to you in this project my very own convolutional neural network. However, before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
+I present to you in this project a hand crafted convolutional neural network (CNN) which performs well on the first track.
+
+Before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
 
 More specifically, here are some resources and academic papers I thoroughly read and digested to ultimately use as inspiration for my final network architecture.
 
@@ -39,20 +41,18 @@ More specifically, here are some resources and academic papers I thoroughly read
 [Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift](https://arxiv.org/abs/1502.03167)  
 [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980v8)  
 
-
-Here is an early diagram I drew on my whiteboard wall in my home office: 
+##### An early diagram I drew on my whiteboard wall in my home office while starting off with Nvidia and CommaAI's network
 
 ![Data Collection, Train, Test Lifecycle](docs/images/data_collect_train_test_lifecycle.jpg)
 
-_NOTE_ (2) no longer saves to train.p. My training features are instances of the `RecordingMeasurement` class which hold reference to an image path and lazy instantiate the source image array inside my custom batch generator.
+_NOTE_ (2) no longer saves to train.p. My training features are instances of the `RecordingMeasurement` class which holds reference to each camera's image path. It lazy instantiates the source image arrays inside my custom batch generator when the getter method is initially invoked.
 
-While on the subject of RecordingMeasurement, here is some documentation for this class:
+##### RecordingMeasurement class documentation
 
 ![RecordingMeasurement](docs/architecture/recording_measurement_class.png)
 
-##### Breakdown
 
-I ended up with a 4-layer convolutional neural network with 4 fully connected layers at the top of the network to bring me to a grand total of 1,776,379 features. 
+#### Network Summary
 
 ```
 ____________________________________________________________________________________________________
@@ -93,7 +93,38 @@ dense_5 (Dense)                  (None, 1)             11          dense_4[0][0]
 Total params: 1776379
 ```
 
-I leveraged the Lamda feature as my input layer so as to normalize all features on the GPU sinces it could do it much faster than on a CPU.
+#### Network Breakdown
+
+The network architecture I ultimately chose is a simple 4-layer convolutional neural network with 4 fully connected layers along with 10% dropout after flattening the data as well as after the first FC layer. The led to a grand total of 1,776,379 features.
+
+I leveraged [Keras' Lamda layer](https://keras.io/layers/core/#lambda) as my input layer to normalize all input features on the GPU sinces it could do it much faster than on a CPU.
+
+I chose the [Adam optimizer](https://keras.io/optimizers/#adam) after first analyzing and comparing the [various Keras optimizers](https://keras.io/optimizers/) and reading thier corresponding academic papers. 
+
+My entire network is essentially inspired by the original original [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980v8) achademic paper, particlarly _6.3 EXPERIMENT: CONVOLUTIONAL NEURAL NETWORKS_.
+
+> **6.3 EXPERIMENT: CONVOLUTIONAL NEURAL NETWORKS**
+
+> Convolutional neural networks (CNNs) with several layers of convolution, pooling and non-linear
+units have shown considerable success in computer vision tasks. Unlike most fully connected neural
+nets, weight sharing in CNNs results in vastly different gradients in different layers. A smaller
+learning rate for the convolution layers is often used in practice when applying SGD. We show the
+effectiveness of Adam in deep CNNs. Our CNN architecture has three alternating stages of 5x5
+convolution filters and 3x3 max pooling with stride of 2 that are followed by a fully connected layer
+of 1000 rectified linear hidden units (ReLU’s). The input image are pre-processed by whitening, and dropout noise is applied to the input layer and fully connected layer. The minibatch size is also set
+to 128 similar to previous experiments.
+
+> Interestingly, although both Adam and Adagrad make rapid progress lowering the cost in the initial
+stage of the training, shown in Figure 3 (left), Adam and SGD eventually converge considerably
+faster than Adagrad for CNNs shown in Figure 3 (right). We notice the second moment estimate vbt
+vanishes to zeros after a few epochs and is dominated by the  in algorithm 1. The second moment
+estimate is therefore a poor approximation to the geometry of the cost function in CNNs comparing
+to fully connected network from Section 6.2. Whereas, reducing the minibatch variance through
+the first moment is more important in CNNs and contributes to the speed-up. As a result, Adagrad
+converges much slower than others in this particular experiment. Though Adam shows marginal
+improvement over SGD with momentum, it adapts learning rate scale for different layers instead of
+hand picking manually as in SGD.
+
 
 #### Training the Network
 
