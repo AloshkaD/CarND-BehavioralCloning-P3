@@ -23,6 +23,8 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 
 #### Network Architecture
 
+##### Overview
+
 I present to you in this project my very own convolutional neural network. However, before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
 
 More specifically, here are some resources and academic papers I thoroughly read and digested to ultimately use as inspiration for my final network architecture.
@@ -46,7 +48,50 @@ While on the subject of RecordingMeasurement, here is some documentation for thi
 
 ![RecordingMeasurement](docs/architecture/recording_measurement_class.png)
 
+##### Breakdown
 
+I ended up with a 4-layer convolutional neural network with 4 fully connected layers at the top of the network to bring me to a grand total of 1,776,379 features. 
+
+```
+____________________________________________________________________________________________________
+Layer (type)                     Output Shape          Param #     Connected to                     
+====================================================================================================
+lambda_1 (Lambda)                (None, 40, 80, 3)     0           lambda_input_1[0][0]             
+____________________________________________________________________________________________________
+convolution2d_1 (Convolution2D)  (None, 36, 76, 24)    1824        lambda_1[0][0]                   
+____________________________________________________________________________________________________
+maxpooling2d_1 (MaxPooling2D)    (None, 18, 38, 24)    0           convolution2d_1[0][0]            
+____________________________________________________________________________________________________
+convolution2d_2 (Convolution2D)  (None, 14, 34, 36)    21636       maxpooling2d_1[0][0]             
+____________________________________________________________________________________________________
+maxpooling2d_2 (MaxPooling2D)    (None, 7, 17, 36)     0           convolution2d_2[0][0]            
+____________________________________________________________________________________________________
+convolution2d_3 (Convolution2D)  (None, 7, 17, 48)     43248       maxpooling2d_2[0][0]             
+____________________________________________________________________________________________________
+maxpooling2d_3 (MaxPooling2D)    (None, 3, 8, 48)      0           convolution2d_3[0][0]            
+____________________________________________________________________________________________________
+convolution2d_4 (Convolution2D)  (None, 3, 8, 64)      27712       maxpooling2d_3[0][0]             
+____________________________________________________________________________________________________
+flatten_1 (Flatten)              (None, 1536)          0           convolution2d_4[0][0]            
+____________________________________________________________________________________________________
+dropout_1 (Dropout)              (None, 1536)          0           flatten_1[0][0]                  
+____________________________________________________________________________________________________
+dense_1 (Dense)                  (None, 1024)          1573888     dropout_1[0][0]                  
+____________________________________________________________________________________________________
+dropout_2 (Dropout)              (None, 1024)          0           dense_1[0][0]                    
+____________________________________________________________________________________________________
+dense_2 (Dense)                  (None, 100)           102500      dropout_2[0][0]                  
+____________________________________________________________________________________________________
+dense_3 (Dense)                  (None, 50)            5050        dense_2[0][0]                    
+____________________________________________________________________________________________________
+dense_4 (Dense)                  (None, 10)            510         dense_3[0][0]                    
+____________________________________________________________________________________________________
+dense_5 (Dense)                  (None, 1)             11          dense_4[0][0]                    
+====================================================================================================
+Total params: 1776379
+```
+
+I leveraged the Lamda feature as my input layer so as to normalize all features on the GPU sinces it could do it much faster than on a CPU.
 
 #### Training the Network
 
