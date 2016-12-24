@@ -178,30 +178,63 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
     return image_array
 
 
-class Track1TrainingDataset:
+class Track1Dataset:
     """
-    Parses driving_log.csv and constructs training and test datasets corresponding to
+    Parses driving_log.csv and constructs training, validation and test datasets corresponding to
     measurements taken at various points in time while recording on track 1.
+
+        * X_train - A set of examples used for learning, that is to fit the parameters [i.e., weights] of the
+                    classifier.
+
+        * X_val - A set of examples used to tune the hyperparameters [i.e., architecture, not weights] of a
+                       classifier, for example to choose the number of hidden units in a neural network.
+
+        * X_test - A set of examples used only to assess the performance [generalization] of a fully-specified
+                   classifier.
+
+        * y_train, y_val, y_test - The steering angle corresponding to their respective X features.
     """
 
     DRIVING_LOG_PATH = './driving_log.csv'
 
-    def __init__(self, validation_split_percentage=0.01):
+    def __init__(self, validation_split_percentage=0.2, test_split_percentage=0.05):
         self.X_train = []
         self.X_val = []
+        self.X_test = []
+
         self.y_train = []
         self.y_val = []
+        self.y_test = []
+
         self.dataframe = None
         self.headers = []
         self.__loaded = False
-        self.load(validation_split_percentage=validation_split_percentage)
+
+        self.__load(validation_split_percentage=validation_split_percentage,
+                    test_split_percentage=test_split_percentage)
 
         assert self.__loaded == True, 'The dataset was not loaded. Perhaps driving_log.csv is missing.'
 
-    def load(self, validation_split_percentage):
+    def __load(self, validation_split_percentage, test_split_percentage):
+        """
+        Splits the training data into a validation and test dataset.
+
+        * X_train - A set of examples used for learning, that is to fit the parameters [i.e., weights] of the classifier.
+
+        * X_val - A set of examples used to tune the hyperparameters [i.e., architecture, not weights] of a
+                       classifier, for example to choose the number of hidden units in a neural network.
+
+        * X_test - A set of examples used only to assess the performance [generalization] of a fully-specified
+                   classifier.
+
+        * y_train, y_val, y_test - The steering angle corresponding to their respective X features.
+        """
         if not self.__loaded:
             X_train, y_train, headers, df = [], [], [], None
 
+            # read in driving_log.csv and construct the
+            # initial X_train and y_train before splitting
+            # it into validation and testing sets.
             if os.path.isfile(self.DRIVING_LOG_PATH):
                 df = pd.read_csv(self.DRIVING_LOG_PATH)
                 headers = list(df.columns.values)
@@ -211,25 +244,36 @@ class Track1TrainingDataset:
                     y_train.append(measurement.steering_angle)
                 self.__loaded = True
 
-            # Split some of the training data into a validation dataset
+            # generate the validation set
             X_train, X_val, y_train, y_val = train_test_split(
                 X_train,
                 y_train,
                 test_size=validation_split_percentage,
                 random_state=0)
 
-            X_train, y_train, X_val, y_val = np.array(X_train), np.array(y_train, dtype=np.float32), np.array(
-                X_val), np.array(
-                y_val, dtype=np.float32)
+            X_train, y_train, X_val, y_val = np.array(X_train), np.array(y_train, dtype=np.float32), \
+                                             np.array(X_val), np.array(y_val, dtype=np.float32)
+
+            # generate the test set
+            X_train, X_test, y_train, y_test = train_test_split(
+                X_train,
+                y_train,
+                test_size=test_split_percentage,
+                random_state=0)
+
+            X_train, y_train, X_test, y_test = np.array(X_train), np.array(y_train, dtype=np.float32), \
+                                               np.array(X_test), np.array(y_test, dtype=np.float32)
 
             self.X_train = X_train
             self.X_val = X_val
+            self.X_test = X_test
+
             self.y_train = y_train
             self.y_val = y_val
+            self.y_test = y_test
+
             self.dataframe = df
             self.headers = headers
-
-        return self.X_train, self.y_train, self.X_val, self.y_val
 
     def batch_generator(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320), flip_images=True,
                         classifier=None, colorspace='yuv'):
@@ -310,11 +354,18 @@ class Track1TrainingDataset:
         results.append('')
         results.append('    validation features: {}'.format(self.X_val.shape))
         results.append('    validation labels: {}'.format(self.y_val.shape))
+        results.append('')
+        results.append('    test features: {}'.format(self.X_test.shape))
+        results.append('    test labels: {}'.format(self.y_test.shape))
+        results.append('')
+        results.append('  [Dataframe sample]')
+        results.append('')
+        results.append(str(self.dataframe.head(n=5)))
         return '\n'.join(results)
 
 
 def load_dataset(validation_split_percentage=0.05):
-    dataset = Track1TrainingDataset(validation_split_percentage=validation_split_percentage)
+    dataset = Track1Dataset(validation_split_percentage=validation_split_percentage)
     print(dataset)
     print(dataset.dataframe.head(n=5))
     return dataset
@@ -501,6 +552,7 @@ flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
 flags.DEFINE_float('dropout_prob', 0.1, "Percentage of neurons to misfire during training.")
 flags.DEFINE_string('activation', 'relu', "The activation function used by the network.")
+
 
 def main(_):
     train_network(
