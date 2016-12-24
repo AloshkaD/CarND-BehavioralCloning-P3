@@ -25,26 +25,30 @@ class RecordingMeasurement:
 
     Features available are:
 
-        left_camera_view   - An image taken by the LEFT camera.
-        center_camera_view - An image taken by the CENTER camera.
-        right_camera_view  - An image taken by the RIGHT camera.
-        steering_angle     - A normalized steering angle in the range -1 to 1.
-        speed              - The speed in which the vehicle was traveling at measurement time.
+        left_camera_view   - An image taken by the LEFT camera
+
+        center_camera_view - An image taken by the CENTER camera
+
+        right_camera_view  - An image taken by the RIGHT camera
+
+        steering_angle     - A normalized steering angle in the range -1 to 1
+
+        speed              - The speed in which the vehicle was traveling at measurement time
 
 
     This class serves the following purposes:
 
-      1. Provides convenience getter methods for left, center and camera images.
+      * Provides convenience getter methods for left, center and camera images.
          In an effort to reduce memory footprint, they're essentially designed
          to lazily instantiate (once) the actual image array at the time the
          method is invoked.
 
-      2. Strips whitespace off the left, center, and right camera image paths.
+      * Strips whitespace off the left, center, and right camera image paths.
 
-      3. Casts the original absolute path of each camera image to a relative path.
+      * Casts the original absolute path of each camera image to a relative path.
          This adds reassurance the image will load on any computer.
 
-      4. Provides a convenient #is_valid_measurment method which encapsulates
+      * Provides a convenient #is_valid_measurment method which encapsulates
          pertinent logic to ensure data quality is satisfactory.
 
     """
