@@ -24,9 +24,15 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 
 I present to you in this project my very own convolutional neural network. However, before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
 
-Here is an early diagram I drew on my whiteboard wall in my home office:
+Here is an early diagram I drew on my whiteboard wall in my home office: 
 
 ![Data Collection, Train, Test Lifecycle](docs/images/data_collect_train_test_lifecycle.jpg)
+
+_NOTE_ (2) no longer saves to train.p. My training features are instances of the `RecordingMeasurement` class which hold reference to an image path and lazy instantiate the source image array inside my custom batch generator.
+
+While on the subject of RecordingMeasurement, here is some documentation for this class:
+
+![RecordingMeasurement](docs/architecture/recording_measurement_class.png)
 
 More specifically, here are some resources and academic papers I thoroughly read and digested to ultimately use as inspiration for my final network architecture.
 
