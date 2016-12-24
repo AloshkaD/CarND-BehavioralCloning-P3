@@ -20,6 +20,18 @@ The following naming conventions were used to make it easy for reviewers to find
 
 The rubric for this project may be found [here](https://review.udacity.com/#!/rubrics/432/view).
 
+#### Network Architecture
+
+I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc. 
+
+More specifically, here are some resources and academic papers I thoroughly read and digested to ultimately use as inspiration for my final network architecture.
+
+[ReLU vs PRELU](https://arxiv.org/pdf/1502.01852v1.pdf)  
+[Dropout](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)  
+[Dropout as explained by Dr. Geoffrey Hinton himself](https://www.youtube.com/watch?v=vAVOY8frLlQ)  
+[Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf)  
+[Identification of Driver Steering and Speed Control](http://www2.eng.cam.ac.uk/~djc13/vehicledynamics/downloads/Odhams_PhDthesis_Sep06.pdf)  
+
 
 #### Training the Network
 
