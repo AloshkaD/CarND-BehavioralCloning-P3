@@ -12,7 +12,6 @@ from io import BytesIO
 from keras.models import model_from_json
 
 from model import preprocess_image
-from zimpy.plot.image_plotter import ImagePlotter
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -56,9 +55,7 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
-    # ImagePlotter.plot_image(image_array)
     image_array = preprocess_image(image_array, output_shape=OUTPUT_SHAPE)
-    # ImagePlotter.plot_image(image_array)
     transformed_image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))
@@ -92,6 +89,7 @@ if __name__ == '__main__':
     model.compile("adam", "mse")
     weights_file = args.model.replace('json', 'h5')
     model.load_weights(weights_file)
+    model.summary()
 
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)
