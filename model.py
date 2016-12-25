@@ -428,7 +428,7 @@ class BaseNetwork:
 
 class Track1(BaseNetwork):
     def fit(self, model, batch_generator, X_train, y_train, X_val, y_val, nb_epoch=2, batch_size=32,
-            samples_per_epoch=None, output_shape=DEFAULT_OUTPUT_SHAPE):
+            samples_per_epoch=None, output_shape=DEFAULT_OUTPUT_SHAPE, colorspace='yuv'):
         # Keras throws an exception if we specify a batch generator
         # for an empty validation dataset.
         validation_data = None
@@ -439,7 +439,8 @@ class Track1(BaseNetwork):
                 label='validation set',
                 num_epochs=nb_epoch,
                 batch_size=batch_size,
-                output_shape=output_shape
+                output_shape=output_shape,
+                colorspace=colorspace
             )
 
         # Fit the model leveraging the custom
@@ -453,7 +454,8 @@ class Track1(BaseNetwork):
                 num_epochs=nb_epoch,
                 batch_size=batch_size,
                 output_shape=output_shape,
-                classifier=self
+                classifier=self,
+                colorspace=colorspace
             ),
             nb_epoch=nb_epoch,
             samples_per_epoch=len(X_train),
@@ -510,7 +512,7 @@ class Track1(BaseNetwork):
 
 
 def train_network(nb_epoch=2, batch_size=32, output_shape=DEFAULT_OUTPUT_SHAPE,
-                  learning_rate=0.001, dropout_prob=0.1, activation='relu', use_weighs=False):
+                  learning_rate=0.001, dropout_prob=0.1, activation='relu', use_weighs=False, colorspace='yuv'):
     dataset = load_dataset()
 
     assert len(dataset.X_train) > 0, 'There is no training data available to train against.'
@@ -537,7 +539,8 @@ def train_network(nb_epoch=2, batch_size=32, output_shape=DEFAULT_OUTPUT_SHAPE,
         X_val=dataset.X_val,
         y_val=dataset.y_val,
         nb_epoch=nb_epoch,
-        batch_size=batch_size
+        batch_size=batch_size,
+        colorspace=colorspace
     )
 
     val_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_val))), dataset.y_val, verbose=1)
@@ -558,6 +561,7 @@ flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
 flags.DEFINE_float('dropout_prob', 0.1, "Percentage of neurons to misfire during training.")
 flags.DEFINE_string('activation', 'relu', "The activation function used by the network.")
+flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to during preprocessing phase.")
 
 
 def main(_):
@@ -568,7 +572,8 @@ def main(_):
         learning_rate=FLAGS.lr,
         dropout_prob=FLAGS.dropout_prob,
         activation=FLAGS.activation,
-        use_weighs=FLAGS.use_weights
+        use_weighs=FLAGS.use_weights,
+        colorspace=FLAGS.colorspace
     )
 
 
