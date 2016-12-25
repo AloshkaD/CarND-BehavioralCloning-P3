@@ -69,7 +69,7 @@ class RecordingMeasurement:
         r = measurement_data['right'].strip()
 
         # cast absolute path to relative path to be environment agnostic
-        l, c, r = [('./IMG/' + os.path.split(file_path)[1]) for file_path in (l, c, r)]
+        l, c, r = [('IMG/' + os.path.split(file_path)[1]) for file_path in (l, c, r)]
 
         self.left_camera_view_path = l
         self.center_camera_view_path = c
@@ -79,7 +79,7 @@ class RecordingMeasurement:
         """
         Return true if the original center image is available to load.
         """
-        return os.path.isfile(self.center_camera_view_path)
+        return os.path.isfile(os.path.join(os.path.dirname(__file__), self.center_camera_view_path))
 
     def left_camera_view(self):
         """
@@ -163,8 +163,11 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
         image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2YUV)
     elif colorspace == 'hsv':
         image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2HSV)
+    elif colorspace == 'hls':
+        image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2HLS)
     elif colorspace == 'rgb':
         image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+
 
     # [y1:y2, x1:x2]
     #
@@ -174,14 +177,13 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
     image_array = image_array[50:140, 0:320]
 
     # Let's blur the image to smooth out some of the artifacts
-    kernel_size = 5  # Must be an odd number (3, 5, 7...)
+    kernel_size = 7  # Must be an odd number (3, 5, 7...)
     image_array = cv2.GaussianBlur(image_array, (kernel_size, kernel_size), 0)
 
     # resize image to output_shape
     image_array = cv2.resize(image_array, (output_shape[1], output_shape[0]), interpolation=cv2.INTER_AREA)
 
     return image_array
-
 
 class Track1Dataset:
     """
@@ -245,8 +247,9 @@ class Track1Dataset:
                 headers = list(df.columns.values)
                 for index, measurement_data in df.iterrows():
                     measurement = RecordingMeasurement(measurement_data=measurement_data)
-                    X_train.append(measurement)
-                    y_train.append(measurement.steering_angle)
+                    if measurement.is_valid_measurement():
+                        X_train.append(measurement)
+                        y_train.append(measurement.steering_angle)
                 self.__loaded = True
 
             # generate the validation set
@@ -368,11 +371,9 @@ class Track1Dataset:
         results.append(str(self.dataframe.head(n=5)))
         return '\n'.join(results)
 
-
-def load_dataset(validation_split_percentage=0.05):
-    dataset = Track1Dataset(validation_split_percentage=validation_split_percentage)
+def load_dataset():
+    dataset = Track1Dataset()
     print(dataset)
-    print(dataset.dataframe.head(n=5))
     return dataset
 
 
@@ -515,9 +516,9 @@ class Track1(BaseNetwork):
         return model
 
 
-def train_network(nb_epoch=2, batch_size=32, validation_split_percentage=0.05, output_shape=DEFAULT_OUTPUT_SHAPE,
+def train_network(nb_epoch=2, batch_size=32, output_shape=DEFAULT_OUTPUT_SHAPE,
                   learning_rate=0.001, dropout_prob=0.1, activation='relu', use_weighs=False):
-    dataset = load_dataset(validation_split_percentage=validation_split_percentage)
+    dataset = load_dataset()
 
     assert len(dataset.X_train) > 0, 'There is no training data available to train against.'
 
@@ -546,13 +547,20 @@ def train_network(nb_epoch=2, batch_size=32, validation_split_percentage=0.05, o
         batch_size=batch_size
     )
 
+    val_score = model.evaluate(dataset.X_val, dataset.y_val, verbose=1)
+    print('Val score:', val_score[0])
+    print('Val accuracy:', val_score[1])
+
+    test_score = model.evaluate(dataset.X_test, dataset.y_test, verbose=1)
+    print('Test score:', test_score[0])
+    print('Test accuracy:', test_score[1])
+
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('epochs', 1, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 32, "The batch size.")
-flags.DEFINE_integer('validation_split_percentage', 0.0, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
 flags.DEFINE_float('dropout_prob', 0.1, "Percentage of neurons to misfire during training.")
@@ -564,7 +572,6 @@ def main(_):
         output_shape=DEFAULT_OUTPUT_SHAPE,
         nb_epoch=FLAGS.epochs,
         batch_size=FLAGS.batch_size,
-        validation_split_percentage=FLAGS.validation_split_percentage,
         learning_rate=FLAGS.lr,
         dropout_prob=FLAGS.dropout_prob,
         activation=FLAGS.activation,
