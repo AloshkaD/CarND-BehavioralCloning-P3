@@ -415,15 +415,8 @@ class BaseNetwork:
         return model
 
     def __persist(self):
-        save_dir = os.path.join(os.path.dirname(__file__))
-        weights_save_path = os.path.join(save_dir, self.WEIGHTS_FILE_NAME)
-        model_save_path = os.path.join(save_dir, self.MODEL_FILE_NAME)
-
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-
-        self.model.save_weights(weights_save_path)
-        with open(model_save_path, 'w') as outfile:
+        self.model.save_weights(self.WEIGHTS_FILE_NAME)
+        with open(self.MODEL_FILE_NAME, 'w') as outfile:
             json.dump(self.model.to_json(), outfile)
 
     def __str__(self):
