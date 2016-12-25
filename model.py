@@ -24,17 +24,22 @@ class RecordingMeasurement:
     around a track during recording.
 
     Features available are:
+        
+        left_camera_view_path   - Path to the physical image taken by the LEFT camera.
 
-        left_camera_view   - An image taken by the LEFT camera
+        center_camera_view_path - Path to the physical image taken by the CENTER camera.
 
-        center_camera_view - An image taken by the CENTER camera
+        right_camera_view_path  - Path to the physical image taken by the RIGHT camera.
 
-        right_camera_view  - An image taken by the RIGHT camera
+        left_camera_view()      - An image taken by the LEFT camera.
 
-        steering_angle     - A normalized steering angle in the range -1 to 1
+        center_camera_view()    - An image taken by the CENTER camera.
 
-        speed              - The speed in which the vehicle was traveling at measurement time
+        right_camera_view()     - An image taken by the RIGHT camera.
 
+        steering_angle          - A normalized steering angle in the range -1 to 1.
+
+        speed                   - The speed in which the vehicle was traveling at measurement time.
 
     This class serves the following purposes:
 
@@ -129,7 +134,7 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
 
     Source image shape is (160, 320, 3)
 
-    Our preprocessing algorithm consists of the following steps:
+    My preprocessing algorithm consists of the following steps:
 
       1. Converts BGR to YUV colorspace.
 
