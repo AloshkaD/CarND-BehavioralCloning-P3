@@ -97,7 +97,7 @@ Total params: 1776379
 
 The network architecture I ultimately chose is a simple 4-layer convolutional neural network with 4 fully connected layers along with 10% dropout after flattening the data as well as after the first FC layer. This led to a grand total of 1,776,379 parameters.
 
-I leveraged [Keras' Lamda layer](https://keras.io/layers/core/#lambda) as my input layer to normalize all input features on the GPU sinces it could do it much faster than on a CPU.
+I leveraged [Keras' Lamda layer](https://keras.io/layers/core/#lambda) as my input layer to normalize all input features on the GPU since it could do it much faster than on a CPU.
 
 I chose the [Adam optimizer](https://keras.io/optimizers/#adam) after first analyzing and comparing the [various Keras optimizers](https://keras.io/optimizers/) and reading thier corresponding academic papers. 
 
