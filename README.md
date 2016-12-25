@@ -101,7 +101,7 @@ I leveraged [Keras' Lamda layer](https://keras.io/layers/core/#lambda) as my inp
 
 I chose the [Adam optimizer](https://keras.io/optimizers/#adam) after first analyzing and comparing the [various Keras optimizers](https://keras.io/optimizers/) and reading thier corresponding academic papers. 
 
-After trying out different learning rates, I found 0.001 to be the most effective starting point.
+After trying out different learning rates, I found 0.001 to be the most effective starting point for my network architecture and training data.
 
 My entire network is essentially inspired by the original original [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980v8) achademic paper, particlarly _6.3 EXPERIMENT: CONVOLUTIONAL NEURAL NETWORKS_.
 
