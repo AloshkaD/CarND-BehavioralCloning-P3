@@ -69,7 +69,7 @@ class RecordingMeasurement:
         r = measurement_data['right'].strip()
 
         # cast absolute path to relative path to be environment agnostic
-        l, c, r = [('IMG/' + os.path.split(file_path)[1]) for file_path in (l, c, r)]
+        l, c, r = [(os.path.join(os.path.dirname(__file__), 'IMG', os.path.split(file_path)[1])) for file_path in (l, c, r)]
 
         self.left_camera_view_path = l
         self.center_camera_view_path = c
@@ -79,7 +79,7 @@ class RecordingMeasurement:
         """
         Return true if the original center image is available to load.
         """
-        return os.path.isfile(os.path.join(os.path.dirname(__file__), self.center_camera_view_path))
+        return os.path.isfile(self.center_camera_view_path)
 
     def left_camera_view(self):
         """
@@ -547,11 +547,11 @@ def train_network(nb_epoch=2, batch_size=32, output_shape=DEFAULT_OUTPUT_SHAPE,
         batch_size=batch_size
     )
 
-    val_score = model.evaluate(dataset.X_val, dataset.y_val, verbose=1)
+    val_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_val))), dataset.y_val, verbose=1)
     print('Val score:', val_score[0])
     print('Val accuracy:', val_score[1])
 
-    test_score = model.evaluate(dataset.X_test, dataset.y_test, verbose=1)
+    test_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_test))), dataset.y_test, verbose=1)
     print('Test score:', test_score[0])
     print('Test accuracy:', test_score[1])
 
