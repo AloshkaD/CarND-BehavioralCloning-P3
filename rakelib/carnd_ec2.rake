@@ -1,4 +1,4 @@
-CARND_IP = '54.212.206.173'
+CARND_IP = '54.201.226.72'
 
 namespace :carnd do
   task :ssh do
