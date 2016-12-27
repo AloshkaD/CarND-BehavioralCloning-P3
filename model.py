@@ -282,8 +282,117 @@ class Track1Dataset:
             self.dataframe = df
             self.headers = headers
 
-    def batch_generator(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320), flip_images=True,
+    def batch_generator(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320),
                         classifier=None, colorspace='yuv'):
+        """
+        A custom batch generator with the main goal of reducing memory footprint
+        on computers and GPUs with limited memory space.
+
+        Infinitely yields `batch_size` elements from the X and Y datasets.
+
+        During batch iteration, this algorithm randomly flips the image
+        and steering angle to reduce bias towards a specific steering angle/direction.
+        """
+        population = len(X)
+        counter = 0
+        _index_in_epoch = 0
+        _tot_epochs = 0
+        batch_size = min(batch_size, population)
+        batch_count = int(math.ceil(population / batch_size))
+
+        assert X.shape[0] == Y.shape[0], 'X and Y size must be identical.'
+
+        print('Batch generating against the {} dataset with population {} and shape {}'.format(label, population,
+                                                                                               X.shape))
+        while True:
+            counter += 1
+            print('batch gen iter {}'.format(counter))
+            for i in range(batch_count):
+                start_i = _index_in_epoch
+                _index_in_epoch += batch_size
+                # all items have been seen; reshuffle and reset counters
+                if _index_in_epoch >= population:
+                    # Save the classifier to support manual early stoppage
+                    if classifier is not None:
+                        classifier.save()
+                    print('  sampled entire population. reshuffling deck and resetting all counters.')
+                    perm = np.arange(population)
+                    np.random.shuffle(perm)
+                    X = X[perm]
+                    Y = Y[perm]
+                    start_i = 0
+                    _index_in_epoch = batch_size
+                    _tot_epochs += 1
+                end_i = min(_index_in_epoch, population)
+
+                X_batch = []
+                y_batch = []
+
+                y_mean = np.mean(Y)
+                thresh = abs(np.mean(Y)) * 0.01
+                l_thresh = np.mean(Y) - thresh
+                r_thresh = np.mean(Y) + thresh
+
+                for j in range(start_i, end_i):
+                    steering_angle = Y[j]
+                    measurement = X[j]
+
+                    mode = 2
+                    if mode == 1:
+                        image_array = measurement.center_camera_view()
+                    else:
+                        if steering_angle < l_thresh:
+                            chance = random.random()
+                            if chance > 0.75:
+                                image_array = measurement.left_camera_view()
+                                augmented_steering = steering_angle * 3.0
+                                steering_angle = augmented_steering
+                            else:
+                                if chance > 0.5:
+                                    image_array = measurement.left_camera_view()
+                                    augmented_steering = steering_angle * 2.0
+                                    steering_angle = augmented_steering
+                                else:
+                                    if chance < 0.1:
+                                        image_array = measurement.center_camera_view()
+                                        augmented_steering = steering_angle * 1.5
+                                        steering_angle = augmented_steering
+                                    else:
+                                        image_array = measurement.center_camera_view()
+
+                        if steering_angle > r_thresh:
+                            chance = random.random()
+                            if chance > 0.75:
+                                image_array = measurement.right_camera_view()
+                                augmented_steering = steering_angle * 3.0
+                                steering_angle = augmented_steering
+                            else:
+                                if chance > 0.5:
+                                    image_array = measurement.right_camera_view()
+                                    augmented_steering = steering_angle * 2.0
+                                    steering_angle = augmented_steering
+                                else:
+                                    if chance < 0.1:
+                                        image_array = measurement.center_camera_view()
+                                        augmented_steering = steering_angle * 1.5
+                                        steering_angle = augmented_steering
+                                    else:
+                                        image_array = measurement.center_camera_view()
+                        else:
+                            image_array = measurement.center_camera_view()
+
+                image = preprocess_image(image_array, output_shape=output_shape)
+                if random.random() > 0.5:
+                    X_batch.append(np.fliplr(image))
+                    y_batch.append(-steering_angle)
+                else:
+                    X_batch.append(image)
+                    y_batch.append(steering_angle)
+
+                yield np.array(X_batch), np.array(y_batch)
+
+    def batch_generator1(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320), flip_images=True,
+                         classifier=None, colorspace='yuv'):
         """
         A custom batch generator with the main goal of reducing memory footprint
         on computers and GPUs with limited memory space.
@@ -631,8 +740,9 @@ def train_network(
 
     # This has the unfortunate side-effect of loading all test set images into memory
     # To save on memory, I'd write my own batch generator
-    test_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view(), clf.output_shape), dataset.X_test))),
-                                dataset.y_test, verbose=1)
+    test_score = model.evaluate(
+        np.array(list(map(lambda x: preprocess_image(x.center_camera_view(), clf.output_shape), dataset.X_test))),
+        dataset.y_test, verbose=1)
     print('Test score:', test_score[0])
     print('Test accuracy:', test_score[1])
 
