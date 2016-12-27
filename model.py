@@ -391,6 +391,7 @@ class BaseNetwork:
         self.weights = None
         self.__model_file_name = 'model_{}.json'.format(self.__class__.__name__)
         self.__weights_file_name = self.__model_file_name.replace('json', 'h5')
+        self.output_shape = None
 
     def build_model(self, input_shape=(160, 320, 3), learning_rate=0.001, dropout_prob=0.1, activation='relu'):
         raise NotImplementedError
@@ -400,6 +401,8 @@ class BaseNetwork:
             batch_size,
             output_shape=(160, 320, 3),
             colorspace='yuv'):
+        self.output_shape = output_shape
+
         # Keras throws an exception if we specify a batch generator
         # for an empty validation dataset.
         validation_data = None
@@ -628,7 +631,7 @@ def train_network(
 
     # This has the unfortunate side-effect of loading all test set images into memory
     # To save on memory, I'd write my own batch generator
-    test_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_test))),
+    test_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view(), clf.output_shape), dataset.X_test))),
                                 dataset.y_test, verbose=1)
     print('Test score:', test_score[0])
     print('Test accuracy:', test_score[1])
