@@ -127,7 +127,7 @@ class RecordingMeasurement:
         return '\n'.join(results)
 
 
-def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
+def preprocess_image(image_array, output_shape=(20, 40), colorspace='yuv'):
     """
     Reminder:
 
@@ -639,7 +639,7 @@ class Mine(BaseNetwork):
             batch_generator, X_train, y_train, X_val, y_val,
             nb_epoch=2,
             batch_size=32,
-            output_shape=(40, 80, 3),
+            output_shape=(20, 40, 3),
             colorspace='yuv'
     ):
         super(Mine, self).fit(
@@ -652,7 +652,7 @@ class Mine(BaseNetwork):
 
     def build_model(
             self,
-            input_shape=(40, 80, 3),
+            input_shape=(20, 40, 3),
             learning_rate=0.001,
             dropout_prob=0.1,
             activation='relu',
