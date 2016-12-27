@@ -603,13 +603,13 @@ def train_network(
         use_weights=use_weighs
     )
 
-    train_perm = np.arange(len(dataset.X_train))
-    np.random.shuffle(train_perm)
+    # train_perm = np.arange(len(dataset.X_train))
+    # np.random.shuffle(train_perm)
 
     clf.fit(
         batch_generator=dataset.batch_generator,
-        X_train=dataset.X_train[train_perm[0:20]],
-        y_train=dataset.y_train[train_perm[0:20]],
+        X_train=dataset.X_train,
+        y_train=dataset.y_train,
         X_val=dataset.X_val,
         y_val=dataset.y_val,
         nb_epoch=nb_epoch,
