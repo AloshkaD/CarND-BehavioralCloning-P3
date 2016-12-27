@@ -249,6 +249,8 @@ class Track1Dataset:
                     if measurement.is_valid_measurement():
                         X_train.append(measurement)
                         y_train.append(measurement.steering_angle)
+                    else:
+                        print('FILE NOT FOUND')
                 self.__loaded = True
 
             # generate the validation set
