@@ -15,8 +15,6 @@ from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
 
-DEFAULT_OUTPUT_SHAPE = (40, 80, 3)
-
 
 class RecordingMeasurement:
     """
@@ -69,7 +67,8 @@ class RecordingMeasurement:
         r = measurement_data['right'].strip()
 
         # cast absolute path to relative path to be environment agnostic
-        l, c, r = [(os.path.join(os.path.dirname(__file__), 'IMG', os.path.split(file_path)[1])) for file_path in (l, c, r)]
+        l, c, r = [(os.path.join(os.path.dirname(__file__), 'IMG', os.path.split(file_path)[1])) for file_path in
+                   (l, c, r)]
 
         self.left_camera_view_path = l
         self.center_camera_view_path = c
@@ -144,7 +143,7 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
       2. Crops top 31.25% portion and bottom 12.5% portion.
          The entire width of the image is preserved.
 
-         This allows the model to generalize better to unseen roadways since we clop
+         This allows the model to generalize better to unseen roadways since we crop
          artifacts such as trees, buildings, etc. above the horizon. We also clip the
          hood from the image.
 
@@ -152,7 +151,7 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
          the output_shape argument.
 
          Once I've cropped the image, I resize it to the specified shape using the INTER_AREA
-         interpolation agorithm as it is the best choice to preserve original image features.
+         interpolation algorithm as it is the best choice to preserve original image features.
 
          See `Scaling` section in OpenCV documentation:
 
@@ -168,7 +167,6 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
     elif colorspace == 'rgb':
         image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
 
-
     # [y1:y2, x1:x2]
     #
     # crops top 31.25% portion and bottom 12.5% portion
@@ -177,13 +175,14 @@ def preprocess_image(image_array, output_shape=(40, 80), colorspace='yuv'):
     image_array = image_array[50:140, 0:320]
 
     # Let's blur the image to smooth out some of the artifacts
-    kernel_size = 7  # Must be an odd number (3, 5, 7...)
+    kernel_size = 5  # Must be an odd number (3, 5, 7...)
     image_array = cv2.GaussianBlur(image_array, (kernel_size, kernel_size), 0)
 
     # resize image to output_shape
     image_array = cv2.resize(image_array, (output_shape[1], output_shape[0]), interpolation=cv2.INTER_AREA)
 
     return image_array
+
 
 class Track1Dataset:
     """
@@ -311,6 +310,7 @@ class Track1Dataset:
             for i in range(batch_count):
                 start_i = _index_in_epoch
                 _index_in_epoch += batch_size
+                # all items have been seen; reshuffle and reset counters
                 if _index_in_epoch >= population:
                     # Save the classifier to support manual early stoppage
                     if classifier is not None:
@@ -371,6 +371,7 @@ class Track1Dataset:
         results.append(str(self.dataframe.head(n=5)))
         return '\n'.join(results)
 
+
 def load_dataset():
     dataset = Track1Dataset()
     print(dataset)
@@ -384,51 +385,22 @@ def visualize_dataset(dataset):
 
 
 class BaseNetwork:
-    WEIGHTS_FILE_NAME = 'model.h5'
-    MODEL_FILE_NAME = 'model.json'
-
     def __init__(self):
         self.uuid = uuid.uuid4()
         self.model = None
         self.weights = None
+        self.__model_file_name = 'model_{}.json'.format(self.__class__.__name__)
+        self.__weights_file_name = self.__model_file_name.replace('json', 'h5')
 
-    def fit(self, model, batch_generator, X_train, y_train, X_val, y_val, nb_epoch=2, batch_size=32,
-            samples_per_epoch=None, output_shape=(160, 320, 3)):
+    def build_model(self, input_shape=(160, 320, 3), learning_rate=0.001, dropout_prob=0.1, activation='relu'):
         raise NotImplementedError
 
-    def build_model(self, input_shape, output_shape, learning_rate=0.001, dropout_prob=0.1, activation='relu'):
-        raise NotImplementedError
-
-    def save(self):
-        print('Saved {} model.'.format(self.__class__.__name__))
-        self.__persist()
-
-    def restore(self):
-        model = None
-        if os.path.exists(self.MODEL_FILE_NAME):
-            with open(self.MODEL_FILE_NAME, 'r') as jfile:
-                the_json = json.load(jfile)
-                print(json.loads(the_json))
-                model = model_from_json(the_json)
-            if os.path.exists(self.WEIGHTS_FILE_NAME):
-                model.load_weights(self.WEIGHTS_FILE_NAME)
-        return model
-
-    def __persist(self):
-        self.model.save_weights(self.WEIGHTS_FILE_NAME)
-        with open(self.MODEL_FILE_NAME, 'w') as outfile:
-            json.dump(self.model.to_json(), outfile)
-
-    def __str__(self):
-        results = []
-        if self.model is not None:
-            results.append(self.model.summary())
-        return '\n'.join(results)
-
-
-class Track1(BaseNetwork):
-    def fit(self, model, batch_generator, X_train, y_train, X_val, y_val, nb_epoch=2, batch_size=32,
-            samples_per_epoch=None, output_shape=DEFAULT_OUTPUT_SHAPE, colorspace='yuv'):
+    def fit(self, batch_generator, X_train, y_train, X_val, y_val,
+            nb_epoch=2,
+            batch_size=32,
+            samples_per_epoch=None,
+            output_shape=(160, 320, 3),
+            colorspace='yuv'):
         # Keras throws an exception if we specify a batch generator
         # for an empty validation dataset.
         validation_data = None
@@ -446,7 +418,7 @@ class Track1(BaseNetwork):
         # Fit the model leveraging the custom
         # batch generator baked into the
         # dataset itself.
-        history = model.fit_generator(
+        history = self.model.fit_generator(
             batch_generator(
                 X=X_train,
                 Y=y_train,
@@ -467,8 +439,99 @@ class Track1(BaseNetwork):
         print(history.history)
         self.save()
 
-    def build_model(self, input_shape, output_shape, learning_rate=0.001, dropout_prob=0.1, activation='relu',
+    def save(self):
+        self.__persist()
+        print('Saved {} model.'.format(self.__class__.__name__))
+
+    def restore(self):
+        model = None
+        if os.path.exists(self.__model_file_name):
+            with open(self.__model_file_name, 'r') as jfile:
+                the_json = json.load(jfile)
+                print(json.loads(the_json))
+                model = model_from_json(the_json)
+            if os.path.exists(self.__weights_file_name):
+                model.load_weights(self.__weights_file_name)
+        return model
+
+    def __persist(self):
+        self.model.save_weights(self.__weights_file_name)
+        with open(self.__model_file_name, 'w') as outfile:
+            json.dump(self.model.to_json(), outfile)
+
+    def __str__(self):
+        results = []
+        if self.model is not None:
+            results.append(self.model.summary())
+        return '\n'.join(results)
+
+
+class Nvidia(BaseNetwork):
+    NETWORK_NAME = 'nvidia'
+
+    def build_model(self, input_shape=(66, 200, 3), learning_rate=0.001, dropout_prob=0.1, activation='elu',
                     use_weights=False):
+        model = None
+        if use_weights:
+            model = self.restore()
+        if model is None:
+            model = Sequential()
+            model.add(Lambda(lambda x: x / 255 - 0.5,
+                             input_shape=input_shape,
+                             output_shape=input_shape))
+            model.add(Convolution2D(24, 5, 5, subsample=(2, 2), border_mode="valid", activation=activation))
+            model.add(Convolution2D(36, 5, 5, subsample=(2, 2), border_mode="valid", activation=activation))
+            model.add(Convolution2D(48, 5, 5, subsample=(2, 2), border_mode="valid", activation=activation))
+            model.add(Convolution2D(64, 3, 3, subsample=(1, 1), border_mode="valid", activation=activation))
+            model.add(Convolution2D(64, 3, 3, subsample=(1, 1), border_mode="valid", activation=activation))
+            model.add(Flatten())
+            model.add(Dropout(dropout_prob))
+            model.add(Dense(1164, activation=activation))
+            model.add(Dropout(dropout_prob))
+            model.add(Dense(100, activation=activation))
+            model.add(Dense(50, activation=activation))
+            model.add(Dense(1, activation=activation))
+
+        optimizer = Adam(lr=learning_rate)
+        model.compile(loss='mse', optimizer=optimizer, metrics=['accuracy'])
+        self.model = model
+        model.summary()
+        return model
+
+
+class Mine(BaseNetwork):
+    NETWORK_NAME = 'mine'
+
+    def fit(
+            self,
+            batch_generator,
+            X_train,
+            y_train,
+            X_val,
+            y_val,
+            nb_epoch=2,
+            batch_size=32,
+            samples_per_epoch=None,
+            output_shape=(40, 80, 3),
+            colorspace='yuv'
+    ):
+        super(Mine, self).fit(
+            batch_generator, X_train, y_train, X_val, y_val,
+            nb_epoch=nb_epoch,
+            batch_size=batch_size,
+            samples_per_epoch=samples_per_epoch,
+            output_shape=output_shape,
+            colorspace=colorspace
+        )
+
+    def build_model(
+            self,
+            input_shape=(40, 80, 3),
+            learning_rate=0.001,
+            dropout_prob=0.1,
+            activation='relu',
+            use_weights=False
+    ):
         """
         Inital zero-mean normalization input layer.
         A 4-layer deep neural network with 4 fully connected layers at the top.
@@ -487,7 +550,7 @@ class Track1(BaseNetwork):
             model = Sequential()
             model.add(Lambda(lambda x: x / 255 - 0.5,
                              input_shape=input_shape,
-                             output_shape=output_shape))
+                             output_shape=input_shape))
             model.add(Convolution2D(24, 5, 5, border_mode='valid', activation=activation))
             model.add(MaxPooling2D(pool_size=(2, 2)))
             model.add(Convolution2D(36, 5, 5, border_mode='valid', activation=activation))
@@ -502,7 +565,7 @@ class Track1(BaseNetwork):
             model.add(Dense(100, activation=activation))
             model.add(Dense(50, activation=activation))
             model.add(Dense(10, activation=activation))
-            model.add(Dense(1, init='normal'))
+            model.add(Dense(1, activation=activation, init='normal'))
 
         optimizer = Adam(lr=learning_rate)
         model.compile(loss='mse', optimizer=optimizer, metrics=['accuracy'])
@@ -511,31 +574,42 @@ class Track1(BaseNetwork):
         return model
 
 
-def train_network(nb_epoch=2, batch_size=32, output_shape=DEFAULT_OUTPUT_SHAPE,
-                  learning_rate=0.001, dropout_prob=0.1, activation='relu', use_weighs=False, colorspace='yuv'):
+def train_network(
+        classifier='mine',
+        nb_epoch=2,
+        batch_size=32,
+        learning_rate=0.001,
+        dropout_prob=0.1,
+        activation='relu',
+        use_weighs=False,
+        colorspace='yuv'
+):
     dataset = load_dataset()
-
     assert len(dataset.X_train) > 0, 'There is no training data available to train against.'
-
     if len(dataset.X_train) > 0:
         print('Center camera view shape:\n\n{}\n'.format(dataset.X_train[0].center_camera_view().shape))
         print(dataset.X_train[0])
 
-    clf = Track1()
+    # instantiate proper classifier
+    if classifier.lower() == Mine.NETWORK_NAME:
+        clf = Mine()
+    elif classifier.lower() == Nvidia.NETWORK_NAME:
+        clf = Nvidia()
+
     model = clf.build_model(
-        input_shape=output_shape,
-        output_shape=output_shape,
         learning_rate=learning_rate,
         dropout_prob=dropout_prob,
         activation=activation,
         use_weights=use_weighs
     )
 
+    train_perm = np.arange(len(dataset.X_train))
+    np.random.shuffle(train_perm)
+
     clf.fit(
-        model=model,
         batch_generator=dataset.batch_generator,
-        X_train=dataset.X_train,
-        y_train=dataset.y_train,
+        X_train=dataset.X_train[train_perm[0:20]],
+        y_train=dataset.y_train[train_perm[0:20]],
         X_val=dataset.X_val,
         y_val=dataset.y_val,
         nb_epoch=nb_epoch,
@@ -543,30 +617,31 @@ def train_network(nb_epoch=2, batch_size=32, output_shape=DEFAULT_OUTPUT_SHAPE,
         colorspace=colorspace
     )
 
-    val_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_val))), dataset.y_val, verbose=1)
-    print('Val score:', val_score[0])
-    print('Val accuracy:', val_score[1])
-
-    test_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_test))), dataset.y_test, verbose=1)
+    # This has the unfortunate side-effect of loading all test set images into memory
+    # To save on memory, I'd write my own batch generator
+    test_score = model.evaluate(np.array(list(map(lambda x: preprocess_image(x.center_camera_view()), dataset.X_test))),
+                                dataset.y_test, verbose=1)
     print('Test score:', test_score[0])
     print('Test accuracy:', test_score[1])
 
+# start
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('epochs', 1, "The number of epochs.")
-flags.DEFINE_integer('batch_size', 32, "The batch size.")
+flags.DEFINE_string('network', 'mine', "The network to train.")
+flags.DEFINE_integer('epochs', 2, "The number of epochs.")
+flags.DEFINE_integer('batch_size', 128, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
 flags.DEFINE_float('dropout_prob', 0.1, "Percentage of neurons to misfire during training.")
-flags.DEFINE_string('activation', 'relu', "The activation function used by the network.")
+flags.DEFINE_string('activation', 'elu', "The activation function used by the network.")
 flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to during preprocessing phase.")
 
 
 def main(_):
     train_network(
-        output_shape=DEFAULT_OUTPUT_SHAPE,
+        classifier=FLAGS.network,
         nb_epoch=FLAGS.epochs,
         batch_size=FLAGS.batch_size,
         learning_rate=FLAGS.lr,
