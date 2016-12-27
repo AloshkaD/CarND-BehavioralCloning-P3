@@ -284,7 +284,7 @@ class Track1Dataset:
             self.dataframe = df
             self.headers = headers
 
-    def batch_generator(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320),
+    def batch_generator3(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320),
                         classifier=None, colorspace='yuv'):
         """
         A custom batch generator with the main goal of reducing memory footprint
@@ -393,7 +393,7 @@ class Track1Dataset:
 
                 yield np.array(X_batch), np.array(y_batch)
 
-    def batch_generator1(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320), flip_images=True,
+    def batch_generator(self, X, Y, label, num_epochs, batch_size=32, output_shape=(160, 320), flip_images=True,
                          classifier=None, colorspace='yuv'):
         """
         A custom batch generator with the main goal of reducing memory footprint
