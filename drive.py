@@ -16,8 +16,8 @@ from model import preprocess_image
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
+output_shape = None
 
-OUTPUT_SHAPE = (40, 80)
 MIN_THROTTLE = 0.2
 MAX_THROTTLE = 0.5
 
@@ -55,7 +55,7 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
-    image_array = preprocess_image(image_array, output_shape=OUTPUT_SHAPE)
+    image_array = preprocess_image(image_array, output_shape=output_shape)
     transformed_image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))
@@ -80,9 +80,14 @@ def send_control(steering_angle, throttle):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remote Driving')
-    parser.add_argument('model', type=str,
-                        help='Path to model definition json. Model weights should be on the same path.')
+    parser.add_argument('model', type=str, help='Path to model definition json. Model weights should be on the same path.')
+    parser.add_argument('out_rows', type=int, help='Height of image expected by network for prediction.')
+    parser.add_argument('out_cols', type=int, help='Width of image expected by network for prediction.')
+
     args = parser.parse_args()
+
+    output_shape = (args.out_rows, args.out_cols)
+
     with open(args.model, 'r') as jfile:
         model = model_from_json(json.load(jfile))
 
