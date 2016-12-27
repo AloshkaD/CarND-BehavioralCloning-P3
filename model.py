@@ -396,9 +396,8 @@ class BaseNetwork:
         raise NotImplementedError
 
     def fit(self, batch_generator, X_train, y_train, X_val, y_val,
-            nb_epoch=2,
-            batch_size=32,
-            samples_per_epoch=None,
+            nb_epoch,
+            batch_size,
             output_shape=(160, 320, 3),
             colorspace='yuv'):
         # Keras throws an exception if we specify a batch generator
@@ -469,6 +468,22 @@ class BaseNetwork:
 class Nvidia(BaseNetwork):
     NETWORK_NAME = 'nvidia'
 
+    def fit(
+            self,
+            batch_generator, X_train, y_train, X_val, y_val,
+            nb_epoch,
+            batch_size,
+            output_shape=(66, 200, 3),
+            colorspace='yuv'
+    ):
+        super(Nvidia, self).fit(
+            batch_generator, X_train, y_train, X_val, y_val,
+            nb_epoch=nb_epoch,
+            batch_size=batch_size,
+            output_shape=output_shape,
+            colorspace=colorspace
+        )
+
     def build_model(self, input_shape=(66, 200, 3), learning_rate=0.001, dropout_prob=0.1, activation='elu',
                     use_weights=False):
         model = None
@@ -504,14 +519,9 @@ class Mine(BaseNetwork):
 
     def fit(
             self,
-            batch_generator,
-            X_train,
-            y_train,
-            X_val,
-            y_val,
+            batch_generator, X_train, y_train, X_val, y_val,
             nb_epoch=2,
             batch_size=32,
-            samples_per_epoch=None,
             output_shape=(40, 80, 3),
             colorspace='yuv'
     ):
@@ -519,7 +529,6 @@ class Mine(BaseNetwork):
             batch_generator, X_train, y_train, X_val, y_val,
             nb_epoch=nb_epoch,
             batch_size=batch_size,
-            samples_per_epoch=samples_per_epoch,
             output_shape=output_shape,
             colorspace=colorspace
         )
@@ -623,6 +632,7 @@ def train_network(
                                 dataset.y_test, verbose=1)
     print('Test score:', test_score[0])
     print('Test accuracy:', test_score[1])
+
 
 # start
 
