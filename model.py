@@ -323,7 +323,7 @@ class Track1Dataset:
                     start_i = 0
                     _index_in_epoch = batch_size
                     _tot_epochs += 1
-                end_i = _index_in_epoch
+                end_i = min(_index_in_epoch, population)
 
                 X_batch = []
                 y_batch = []
