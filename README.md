@@ -145,7 +145,7 @@ I trained the network on a g2.2xlarge EC2 instance, saved the model and weights 
 
 ##### COMMAND: Train the Network (using driving_log.csv and all images in IMG)
 
-`$ python3 model.py --network mine --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
+`$ python3 model.py --network track1 --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
 
 ##### COMMAND: Start client to send signals to the simulator in Autonomous Mode
 
