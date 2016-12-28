@@ -342,14 +342,14 @@ class Track1Dataset:
                     if steering_angle < l_thresh:
                         chance = random.random()
 
-                        # 25% of the left curves get a 2x augmented steering angle with left camera image
-                        if chance > 0.75:
+                        # 20% of the left curves get a 2x augmented steering angle with left camera image
+                        if chance > 0.8:
                             image_array = measurement.right_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 25% of the left curves get a 1.5x augmented steering angle with left camera image
-                            if chance > 0.5:
+                            # 20% of the left curves get a 1.5x augmented steering angle with left camera image
+                            if chance > 0.6:
                                 image_array = measurement.right_camera_view()
                                 augmented_steering = steering_angle * 1.5
                                 steering_angle = augmented_steering
@@ -360,21 +360,21 @@ class Track1Dataset:
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 40% of left curves get actual steering angle with center camera image
+                                # 50% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
 
                     if steering_angle > r_thresh:
                         chance = random.random()
 
-                        # 25% of the right curves get a 2x augmented steering angle
-                        if chance > 0.75:
+                        # 20% of the right curves get a 2x augmented steering angle
+                        if chance > 0.8:
                             image_array = measurement.left_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 25% of the right curves get a 1.75x augmented steering angle
-                            if chance > 0.5:
+                            # 20% of the right curves get a 1.75x augmented steering angle
+                            if chance > 0.6:
                                 image_array = measurement.left_camera_view()
                                 augmented_steering = steering_angle * 1.75
                                 steering_angle = augmented_steering
@@ -385,7 +385,7 @@ class Track1Dataset:
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 40% of left curves get actual steering angle with center camera image
+                                # 50% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
                     else:
