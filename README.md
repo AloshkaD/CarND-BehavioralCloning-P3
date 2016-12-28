@@ -5,8 +5,6 @@ Final submission for Udacity's Self-Driving Car Engineer NanoDegree Behavioral C
 
 See [model.ipynb](model.ipynb) for a thorough walk-through of this project including code and visualizations.
 
-**NOTE:** I have yet to successfully generalize to track 2 with my current model, however, I have several hypothesis which I will be testing in the coming weeks in an effort to crack the code.
-
 #### Project Submission Guidelines
 
 For this project, a reviewer will be testing [model.json](model.json) and [model.h5](model.h5) which was generated on the first test track using [model.py](model.py) (the one to the left in the track selection options).
