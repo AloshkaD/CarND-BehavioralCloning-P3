@@ -146,7 +146,7 @@ At each point in autonomous mode where the car vered off in a non-safe manner, I
 
 ##### COMMAND: Train the Network
 
-`$ python3 model.py --nb_epochs 2 --learning_rate 0.001 --use_weights False`
+`$ python3 model.py --network mine --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
 
 ##### COMMAND: Start client to send signals to the simulator in Autonomous Mode
 
