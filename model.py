@@ -342,50 +342,50 @@ class Track1Dataset:
                     if steering_angle < l_thresh:
                         chance = random.random()
 
-                        # 20% of the left curves get a 2x augmented steering angle with left camera image
+                        # 20% of the left curves get a 2x augmented steering angle with right camera image
                         if chance > 0.8:
                             image_array = measurement.right_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of the left curves get a 1.5x augmented steering angle with left camera image
+                            # 20% of the left curves get a 1.5x augmented steering angle with right camera image
                             if chance > 0.6:
                                 image_array = measurement.right_camera_view()
                                 augmented_steering = steering_angle * 1.5
                                 steering_angle = augmented_steering
                             else:
-                                # 10% of left curves get a 1.5x augmented steering angle with center camera image
-                                if chance < 0.1:
+                                # 30% of left curves get a 1.5x augmented steering angle with center camera image
+                                if chance < 0.3:
                                     image_array = measurement.center_camera_view()
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 50% of left curves get actual steering angle with center camera image
+                                # 30% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
 
                     if steering_angle > r_thresh:
                         chance = random.random()
 
-                        # 20% of the right curves get a 2x augmented steering angle
+                        # 20% of the right curves get a 2x augmented steering angle with left camera image
                         if chance > 0.8:
                             image_array = measurement.left_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of the right curves get a 1.75x augmented steering angle
+                            # 20% of the right curves get a 1.75x augmented steering angle with left camera image
                             if chance > 0.6:
                                 image_array = measurement.left_camera_view()
                                 augmented_steering = steering_angle * 1.75
                                 steering_angle = augmented_steering
                             else:
-                                # 10% of left curves get a 1.5x augmented steering angle with center camera image
-                                if chance < 0.1:
+                                # 30% of left curves get a 1.5x augmented steering angle with center camera image
+                                if chance < 0.3:
                                     image_array = measurement.center_camera_view()
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 50% of left curves get actual steering angle with center camera image
+                                # 30% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
                     else:
