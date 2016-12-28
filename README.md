@@ -131,21 +131,19 @@ hand picking manually as in SGD.
 
 #### Training the Network
 
-##### Gathering Initial Training Data
+##### Gathering Training Data
 
 All training data was collected in the Self-Driving Car simulator on Mac OS using a Playstation 3 controller. 
 
-I recorded myself driving around the track in the center lane approximately 4 times. Once I felt I collected enough training samples (~20k), I rsynced driving_log.csv and all images in the IMG directory to my EC2 GPU instance.
+I recorded myself driving around the track in the center lane approximately 4 times. At each point in autonomous mode where the car vered off in a non-safe manner, I would record recovery data but hugging the left or right shoulder then recording myself gracefully swirve into the middle of the lane.
+
+Once I felt I collected enough training samples (~21k), I committed driving_log.csv and all images in the IMG directory to this GitHub repository.
 
 ##### Training with Initial Training Data
 
 I trained the network on a g2.2xlarge EC2 instance, saved the model and weights persisted as model.json and model.h5 respectively, `scp`ed model.json and model.h5 to my machine, then tested the model in autonomous mode using `drive.py`.
 
-##### Gathering Recovery Training Data
-
-At each point in autonomous mode where the car vered off in a non-safe manner, I would record recovery data. Before recording, I wiped driving_log.csv clean to collect recovery data only.
-
-##### COMMAND: Train the Network
+##### COMMAND: Train the Network (using driving_log.csv and all images in IMG)
 
 `$ python3 model.py --network mine --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
 
