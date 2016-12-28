@@ -451,7 +451,7 @@ class BaseNetwork:
         self.__weights_file_name = self.__model_file_name.replace('json', 'h5')
         self.output_shape = None
 
-    def build_model(self, input_shape=(160, 320, 3), learning_rate=0.001, dropout_prob=0.1, activation='relu'):
+    def build_model(self, input_shape=(160, 320, 3), learning_rate=0.001, dropout_prob=0.5, activation='elu'):
         raise NotImplementedError
 
     def fit(self, batch_generator, X_train, y_train, X_val, y_val,
@@ -545,7 +545,7 @@ class Nvidia(BaseNetwork):
             colorspace=colorspace
         )
 
-    def build_model(self, input_shape=(66, 200, 3), learning_rate=0.001, dropout_prob=0.1, activation='elu',
+    def build_model(self, input_shape=(66, 200, 3), learning_rate=0.001, dropout_prob=0.5, activation='elu',
                     use_weights=False):
         model = None
         if use_weights:
@@ -598,16 +598,16 @@ class Track1(BaseNetwork):
             self,
             input_shape=(20, 40, 3),
             learning_rate=0.001,
-            dropout_prob=0.1,
-            activation='relu',
+            dropout_prob=0.5,
+            activation='elu',
             use_weights=False
     ):
         """
         Inital zero-mean normalization input layer.
         A 4-layer deep neural network with 4 fully connected layers at the top.
-        ReLU activation used on each convolution layer.
-        Dropout of 10% (default) used after initially flattening after convolution layers.
-        Dropout of 10% (default) used after first fully connected layer.
+        ELU activation used on each convolution layer.
+        Dropout of 50% (default) used after initially flattening after convolution layers.
+        Dropout of 50% (default) used after first fully connected layer.
 
         Adam optimizer with 0.001 learning rate (default) used in this network.
         Mean squared error loss function was used since this is a regression problem and MSE is
@@ -649,8 +649,8 @@ def train_network(
         nb_epoch=2,
         batch_size=32,
         learning_rate=0.001,
-        dropout_prob=0.1,
-        activation='relu',
+        dropout_prob=0.5,
+        activation='elu',
         use_weighs=False,
         colorspace='yuv'
 ):
@@ -706,7 +706,7 @@ flags.DEFINE_integer('epochs', 2, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
-flags.DEFINE_float('dropout_prob', 0.1, "Percentage of neurons to misfire during training.")
+flags.DEFINE_float('dropout_prob', 0.5, "Percentage of neurons to misfire during training.")
 flags.DEFINE_string('activation', 'elu', "The activation function used by the network.")
 flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to during preprocessing phase.")
 
