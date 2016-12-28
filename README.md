@@ -25,7 +25,7 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 
 ##### Overview
 
-I present to you in this project a hand crafted convolutional neural network (CNN) which performs well on the first track.
+I present to you in this project a hand crafted, an end-to-end deep learning, convolutional neural network (CNN) which performs well on the first track. It also generalizes well on the second track in some Graphics Quality settings such as Fastest and Fast.
 
 Before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
 
@@ -58,27 +58,27 @@ _NOTE_ (2) no longer saves to train.p. My training features are instances of the
 ____________________________________________________________________________________________________
 Layer (type)                     Output Shape          Param #     Connected to                     
 ====================================================================================================
-lambda_1 (Lambda)                (None, 40, 80, 3)     0           lambda_input_1[0][0]             
+lambda_1 (Lambda)                (None, 20, 40, 3)     0           lambda_input_1[0][0]             
 ____________________________________________________________________________________________________
-convolution2d_1 (Convolution2D)  (None, 36, 76, 24)    1824        lambda_1[0][0]                   
+convolution2d_1 (Convolution2D)  (None, 16, 36, 24)    1824        lambda_1[0][0]                   
 ____________________________________________________________________________________________________
-maxpooling2d_1 (MaxPooling2D)    (None, 18, 38, 24)    0           convolution2d_1[0][0]            
+maxpooling2d_1 (MaxPooling2D)    (None, 8, 18, 24)     0           convolution2d_1[0][0]            
 ____________________________________________________________________________________________________
-convolution2d_2 (Convolution2D)  (None, 14, 34, 36)    21636       maxpooling2d_1[0][0]             
+convolution2d_2 (Convolution2D)  (None, 4, 14, 36)     21636       maxpooling2d_1[0][0]             
 ____________________________________________________________________________________________________
-maxpooling2d_2 (MaxPooling2D)    (None, 7, 17, 36)     0           convolution2d_2[0][0]            
+maxpooling2d_2 (MaxPooling2D)    (None, 2, 7, 36)      0           convolution2d_2[0][0]            
 ____________________________________________________________________________________________________
-convolution2d_3 (Convolution2D)  (None, 7, 17, 48)     43248       maxpooling2d_2[0][0]             
+convolution2d_3 (Convolution2D)  (None, 2, 7, 48)      43248       maxpooling2d_2[0][0]             
 ____________________________________________________________________________________________________
-maxpooling2d_3 (MaxPooling2D)    (None, 3, 8, 48)      0           convolution2d_3[0][0]            
+maxpooling2d_3 (MaxPooling2D)    (None, 1, 3, 48)      0           convolution2d_3[0][0]            
 ____________________________________________________________________________________________________
-convolution2d_4 (Convolution2D)  (None, 3, 8, 64)      27712       maxpooling2d_3[0][0]             
+convolution2d_4 (Convolution2D)  (None, 1, 3, 64)      27712       maxpooling2d_3[0][0]             
 ____________________________________________________________________________________________________
-flatten_1 (Flatten)              (None, 1536)          0           convolution2d_4[0][0]            
+flatten_1 (Flatten)              (None, 192)           0           convolution2d_4[0][0]            
 ____________________________________________________________________________________________________
-dropout_1 (Dropout)              (None, 1536)          0           flatten_1[0][0]                  
+dropout_1 (Dropout)              (None, 192)           0           flatten_1[0][0]                  
 ____________________________________________________________________________________________________
-dense_1 (Dense)                  (None, 1024)          1573888     dropout_1[0][0]                  
+dense_1 (Dense)                  (None, 1024)          197632      dropout_1[0][0]                  
 ____________________________________________________________________________________________________
 dropout_2 (Dropout)              (None, 1024)          0           dense_1[0][0]                    
 ____________________________________________________________________________________________________
@@ -90,16 +90,17 @@ dense_4 (Dense)                  (None, 10)            510         dense_3[0][0]
 ____________________________________________________________________________________________________
 dense_5 (Dense)                  (None, 1)             11          dense_4[0][0]                    
 ====================================================================================================
-Total params: 1776379
+Total params: 400123
+____________________________________________________________________________________________________
 ```
 
 #### Network Breakdown
 
-The network architecture I ultimately chose is a simple 4-layer convolutional neural network with 4 fully connected layers along with 10% dropout after flattening the data as well as after the first FC layer. This led to a grand total of 1,776,379 parameters.
+The network architecture I ultimately chose is a simple 4-layer convolutional neural network with 4 fully connected layers along with 50% dropout after flattening the data as well as after the first FC layer. This led to a grand total of 400,123 parameters.
 
 I leveraged [Keras' Lamda layer](https://keras.io/layers/core/#lambda) as my input layer to normalize all input features on the GPU since it could do it much faster than on a CPU.
 
-I chose the [Adam optimizer](https://keras.io/optimizers/#adam) after first analyzing and comparing the [various Keras optimizers](https://keras.io/optimizers/) and reading thier corresponding academic papers. 
+I chose the [Adam optimizer](https://keras.io/optimizers/#adam) after first analyzing and comparing the [various Keras optimizers](https://keras.io/optimizers/) and reading thier corresponding academic papers. It is extremely robust allowing me to focus on other parts of the network.
 
 After trying out different learning rates, I found 0.001 to be the most effective starting point for my network architecture and training data.
 
@@ -146,7 +147,7 @@ At each point in autonomous mode where the car vered off in a non-safe manner, I
 
 ##### COMMAND: Train the Network
 
-`$ python3 model.py --nb_epochs 2 --learning_rate 0.001 --use_weights False`
+`$ python3 model.py --network mine --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
 
 ##### COMMAND: Start client to send signals to the simulator in Autonomous Mode
 
