@@ -575,8 +575,8 @@ class Nvidia(BaseNetwork):
         return model
 
 
-class Mine(BaseNetwork):
-    NETWORK_NAME = 'mine'
+class Track1(BaseNetwork):
+    NETWORK_NAME = 'track1'
 
     def fit(
             self,
@@ -586,7 +586,7 @@ class Mine(BaseNetwork):
             output_shape=(20, 40, 3),
             colorspace='yuv'
     ):
-        super(Mine, self).fit(
+        super(Track1, self).fit(
             batch_generator, X_train, y_train, X_val, y_val,
             nb_epoch=nb_epoch,
             batch_size=batch_size,
@@ -645,7 +645,7 @@ class Mine(BaseNetwork):
 
 
 def train_network(
-        classifier='mine',
+        classifier='track1',
         nb_epoch=2,
         batch_size=32,
         learning_rate=0.001,
@@ -661,8 +661,8 @@ def train_network(
         print(dataset.X_train[0])
 
     # instantiate proper classifier
-    if classifier.lower() == Mine.NETWORK_NAME:
-        clf = Mine()
+    if classifier.lower() == Track1.NETWORK_NAME:
+        clf = Track1()
     elif classifier.lower() == Nvidia.NETWORK_NAME:
         clf = Nvidia()
 
@@ -701,7 +701,7 @@ def train_network(
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('classifier', 'mine', "The network to train.")
+flags.DEFINE_string('classifier', 'track1', "The network to train.")
 flags.DEFINE_integer('epochs', 2, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
