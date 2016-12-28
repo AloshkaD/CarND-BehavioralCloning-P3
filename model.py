@@ -342,50 +342,50 @@ class Track1Dataset:
                     if steering_angle < l_thresh:
                         chance = random.random()
 
-                        # 20% of the left curves get a 2x augmented steering angle with left camera image
+                        # 20% of the left curves get a 2x augmented steering angle with right camera image
                         if chance > 0.8:
                             image_array = measurement.right_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of the left curves get a 1.5x augmented steering angle with left camera image
+                            # 20% of the left curves get a 1.5x augmented steering angle with right camera image
                             if chance > 0.6:
                                 image_array = measurement.right_camera_view()
                                 augmented_steering = steering_angle * 1.5
                                 steering_angle = augmented_steering
                             else:
-                                # 10% of left curves get a 1.5x augmented steering angle with center camera image
-                                if chance < 0.1:
+                                # 30% of left curves get a 1.5x augmented steering angle with center camera image
+                                if chance < 0.3:
                                     image_array = measurement.center_camera_view()
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 50% of left curves get actual steering angle with center camera image
+                                # 30% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
 
                     if steering_angle > r_thresh:
                         chance = random.random()
 
-                        # 20% of the right curves get a 2x augmented steering angle
+                        # 20% of the right curves get a 2x augmented steering angle with left camera image
                         if chance > 0.8:
                             image_array = measurement.left_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of the right curves get a 1.75x augmented steering angle
+                            # 20% of the right curves get a 1.75x augmented steering angle with left camera image
                             if chance > 0.6:
                                 image_array = measurement.left_camera_view()
                                 augmented_steering = steering_angle * 1.75
                                 steering_angle = augmented_steering
                             else:
-                                # 10% of left curves get a 1.5x augmented steering angle with center camera image
-                                if chance < 0.1:
+                                # 30% of left curves get a 1.5x augmented steering angle with center camera image
+                                if chance < 0.3:
                                     image_array = measurement.center_camera_view()
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 50% of left curves get actual steering angle with center camera image
+                                # 30% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
                     else:
@@ -451,7 +451,7 @@ class BaseNetwork:
         self.__weights_file_name = self.__model_file_name.replace('json', 'h5')
         self.output_shape = None
 
-    def build_model(self, input_shape=(160, 320, 3), learning_rate=0.001, dropout_prob=0.1, activation='relu'):
+    def build_model(self, input_shape=(160, 320, 3), learning_rate=0.001, dropout_prob=0.5, activation='elu'):
         raise NotImplementedError
 
     def fit(self, batch_generator, X_train, y_train, X_val, y_val,
@@ -545,7 +545,7 @@ class Nvidia(BaseNetwork):
             colorspace=colorspace
         )
 
-    def build_model(self, input_shape=(66, 200, 3), learning_rate=0.001, dropout_prob=0.1, activation='elu',
+    def build_model(self, input_shape=(66, 200, 3), learning_rate=0.001, dropout_prob=0.5, activation='elu',
                     use_weights=False):
         model = None
         if use_weights:
@@ -575,8 +575,8 @@ class Nvidia(BaseNetwork):
         return model
 
 
-class Mine(BaseNetwork):
-    NETWORK_NAME = 'mine'
+class Track1(BaseNetwork):
+    NETWORK_NAME = 'track1'
 
     def fit(
             self,
@@ -586,7 +586,7 @@ class Mine(BaseNetwork):
             output_shape=(20, 40, 3),
             colorspace='yuv'
     ):
-        super(Mine, self).fit(
+        super(Track1, self).fit(
             batch_generator, X_train, y_train, X_val, y_val,
             nb_epoch=nb_epoch,
             batch_size=batch_size,
@@ -598,16 +598,16 @@ class Mine(BaseNetwork):
             self,
             input_shape=(20, 40, 3),
             learning_rate=0.001,
-            dropout_prob=0.1,
-            activation='relu',
+            dropout_prob=0.5,
+            activation='elu',
             use_weights=False
     ):
         """
         Inital zero-mean normalization input layer.
         A 4-layer deep neural network with 4 fully connected layers at the top.
-        ReLU activation used on each convolution layer.
-        Dropout of 10% (default) used after initially flattening after convolution layers.
-        Dropout of 10% (default) used after first fully connected layer.
+        ELU activation used on each convolution layer.
+        Dropout of 50% (default) used after initially flattening after convolution layers.
+        Dropout of 50% (default) used after first fully connected layer.
 
         Adam optimizer with 0.001 learning rate (default) used in this network.
         Mean squared error loss function was used since this is a regression problem and MSE is
@@ -645,12 +645,12 @@ class Mine(BaseNetwork):
 
 
 def train_network(
-        classifier='mine',
+        classifier='track1',
         nb_epoch=2,
         batch_size=32,
         learning_rate=0.001,
-        dropout_prob=0.1,
-        activation='relu',
+        dropout_prob=0.5,
+        activation='elu',
         use_weighs=False,
         colorspace='yuv'
 ):
@@ -661,8 +661,8 @@ def train_network(
         print(dataset.X_train[0])
 
     # instantiate proper classifier
-    if classifier.lower() == Mine.NETWORK_NAME:
-        clf = Mine()
+    if classifier.lower() == Track1.NETWORK_NAME:
+        clf = Track1()
     elif classifier.lower() == Nvidia.NETWORK_NAME:
         clf = Nvidia()
 
@@ -701,12 +701,12 @@ def train_network(
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('classifier', 'mine', "The network to train.")
+flags.DEFINE_string('classifier', 'track1', "The network to train.")
 flags.DEFINE_integer('epochs', 2, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
-flags.DEFINE_float('dropout_prob', 0.1, "Percentage of neurons to misfire during training.")
+flags.DEFINE_float('dropout_prob', 0.5, "Percentage of neurons to misfire during training.")
 flags.DEFINE_string('activation', 'elu', "The activation function used by the network.")
 flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to during preprocessing phase.")
 
