@@ -80,13 +80,11 @@ def send_control(steering_angle, throttle):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remote Driving')
-    parser.add_argument('model', type=str, help='Path to model definition json. Model weights should be on the same path.')
-    parser.add_argument('out_rows', type=int, help='Height of image expected by network for prediction.')
-    parser.add_argument('out_cols', type=int, help='Width of image expected by network for prediction.')
+    parser.add_argument('model', default='model.json', type=str, help='Path to model definition json. Model weights should be on the same path.')
 
     args = parser.parse_args()
 
-    output_shape = (args.out_rows, args.out_cols)
+    output_shape = (20, 40)
 
     with open(args.model, 'r') as jfile:
         model = model_from_json(json.load(jfile))
