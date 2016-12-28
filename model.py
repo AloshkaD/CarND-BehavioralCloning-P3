@@ -757,7 +757,7 @@ def train_network(
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('network', 'mine', "The network to train.")
+flags.DEFINE_string('classifier', 'mine', "The network to train.")
 flags.DEFINE_integer('epochs', 2, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
@@ -769,7 +769,7 @@ flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to du
 
 def main(_):
     train_network(
-        classifier=FLAGS.network,
+        classifier=FLAGS.classifier,
         nb_epoch=FLAGS.epochs,
         batch_size=FLAGS.batch_size,
         learning_rate=FLAGS.lr,
