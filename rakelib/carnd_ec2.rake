@@ -1,4 +1,4 @@
-CARND_IP = '54.214.106.160'
+CARND_IP = '54.245.46.71'
 
 namespace :carnd do
   task :ssh do
@@ -36,8 +36,8 @@ namespace :carnd do
   task :get_model, [] do
     host = "carnd@#{CARND_IP}"
 
-    sh "rsync -avzh --progress #{host}:~/CarND-BehavioralCloning-P3/model.json ."
-    sh "rsync -avzh --progress #{host}:~/CarND-BehavioralCloning-P3/model.h5 ."
+    sh "rsync -avzh --progress #{host}:~/CarND-BehavioralCloning-P3/model*.json ."
+    sh "rsync -avzh --progress #{host}:~/CarND-BehavioralCloning-P3/model*.h5 ."
   end
 
   task :down, [:src, :dest] do |t, args|
