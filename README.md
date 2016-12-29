@@ -1,7 +1,7 @@
-# Behavioral Cloning using Deep Learning
-##### A Udacity Self-Driving Car Engineer NanoDegree project
+# Use Deep Learning to Clone Driving Behavior
+##### Project 3 for the Self Driving Car Engineer Nanodegree Program
 
-Final submission for Udacity's Self-Driving Car Engineer NanoDegree Behavioral Cloning project.
+Final submission for Udacity's Self Driving Car Engineer NanoDegree Behavioral Cloning project.
 
 See [model.ipynb](model.ipynb) for a thorough walk-through of this project including code and visualizations.
 
