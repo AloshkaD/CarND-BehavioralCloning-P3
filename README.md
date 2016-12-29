@@ -1,11 +1,9 @@
-# Behavioral Cloning using Deep Learning
-##### A Udacity Self-Driving Car Engineer NanoDegree project
+# Use Deep Learning to Clone Driving Behavior
+##### Project 3 for the Self Driving Car Engineer Nanodegree Program
 
-Final submission for Udacity's Self-Driving Car Engineer NanoDegree Behavioral Cloning project.
+Final submission for Udacity's Self Driving Car Engineer NanoDegree Behavioral Cloning project.
 
 See [model.ipynb](model.ipynb) for a thorough walk-through of this project including code and visualizations.
-
-**NOTE:** I have yet to successfully generalize to track 2 with my current model, however, I have several hypothesis which I will be testing in the coming weeks in an effort to crack the code.
 
 #### Project Submission Guidelines
 
@@ -20,6 +18,16 @@ The following naming conventions were used to make it easy for reviewers to find
 * `README.md` - Explains the structure of my network and training approach.
 
 The rubric for this project may be found [here](https://review.udacity.com/#!/rubrics/432/view).
+
+#### CLI Commands
+##### Train the Network (using driving_log.csv and all images in IMG)
+
+`$ python3 model.py --network track1 --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
+
+##### Start client to send signals to the simulator in Autonomous Mode
+
+`$ python3 drive.py model.json`
+
 
 #### Network Architecture
 
@@ -142,14 +150,5 @@ Once I felt I collected enough training samples (~21k), I committed driving_log.
 ##### Training with Initial Training Data
 
 I trained the network on a g2.2xlarge EC2 instance, saved the model and weights persisted as model.json and model.h5 respectively, `scp`ed model.json and model.h5 to my machine, then tested the model in autonomous mode using `drive.py`.
-
-##### COMMAND: Train the Network (using driving_log.csv and all images in IMG)
-
-`$ python3 model.py --network track1 --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
-
-##### COMMAND: Start client to send signals to the simulator in Autonomous Mode
-
-`$ python3 drive.py model.json`
-
 
 
