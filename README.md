@@ -19,6 +19,16 @@ The following naming conventions were used to make it easy for reviewers to find
 
 The rubric for this project may be found [here](https://review.udacity.com/#!/rubrics/432/view).
 
+#### CLI Commands
+##### Train the Network (using driving_log.csv and all images in IMG)
+
+`$ python3 model.py --network track1 --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
+
+##### Start client to send signals to the simulator in Autonomous Mode
+
+`$ python3 drive.py model.json`
+
+
 #### Network Architecture
 
 ##### Overview
@@ -140,14 +150,5 @@ Once I felt I collected enough training samples (~21k), I committed driving_log.
 ##### Training with Initial Training Data
 
 I trained the network on a g2.2xlarge EC2 instance, saved the model and weights persisted as model.json and model.h5 respectively, `scp`ed model.json and model.h5 to my machine, then tested the model in autonomous mode using `drive.py`.
-
-##### COMMAND: Train the Network (using driving_log.csv and all images in IMG)
-
-`$ python3 model.py --network track1 --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
-
-##### COMMAND: Start client to send signals to the simulator in Autonomous Mode
-
-`$ python3 drive.py model.json`
-
 
 
