@@ -26,7 +26,7 @@ def get_throttle(steering_angle):
     """
     Simulated throttle modulation
 
-    Simulates a human driving taking their foot off the accellerator
+    Simulates a human driving taking their foot off the accelerator
     pedal when approaching a sharp curve.
 
     The idea here is to find # of standard deviations away from 0 the steering angle is.
