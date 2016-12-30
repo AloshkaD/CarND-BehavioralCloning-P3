@@ -170,7 +170,7 @@ def preprocess_image(image_array, output_shape=(20, 40), colorspace='yuv'):
 
     # [y1:y2, x1:x2]
     #
-    # crops top 31.25% portion and bottom 12.5% portion
+    # crops top 40% portion and bottom 12.5% portion
     #
     # The entire width of the image is preserved
     image_array = image_array[65:140, 0:320]
