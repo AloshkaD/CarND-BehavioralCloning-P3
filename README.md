@@ -48,6 +48,7 @@ More specifically, here are some resources and academic papers I thoroughly read
 [Feature Scaling by Andrew Ng](https://youtu.be/aJmorz9gD4g)  
 [Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift](https://arxiv.org/abs/1502.03167)  
 [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980v8)  
+[How does the dropout method work in deep learning?](https://www.quora.com/How-does-the-dropout-method-work-in-deep-learning)  
 
 ##### An early diagram I drew on my whiteboard wall in my home office while starting off with Nvidia and CommaAI's network
 
