@@ -33,7 +33,7 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 
 ##### Overview
 
-I present to you in this project a hand crafted, an end-to-end deep learning, convolutional neural network (CNN) which performs well on the first track. It also generalizes well on the second track in some Graphics Quality settings such as Fastest and Fast.
+I present to you in this project a hand crafted, end-to-end deep learning, convolutional neural network (CNN) which performs well on the first track. It also generalizes well on the second track in some Graphics Quality settings such as Fastest and Fast.
 
 Before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
 
