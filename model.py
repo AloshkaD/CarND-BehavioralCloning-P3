@@ -7,6 +7,7 @@ import random
 import cv2
 import math
 
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from scipy import misc
 from keras.layers import Convolution2D, MaxPooling2D, Dropout, Flatten, Dense, Lambda
 from keras.models import Sequential, model_from_json
@@ -290,42 +291,71 @@ class Track1Dataset:
         A custom batch generator with the main goal of reducing memory footprint
         on computers and GPUs with limited memory space.
 
+        All left, center and right images are considered in the algorithm.
+
         Infinitely yields `batch_size` elements from the X and Y datasets.
 
-        During batch iteration, this algorithm randomly flips the image
-        and steering angle to reduce bias towards a specific steering angle/direction.
+        During batch iteration, this algorithm does the following:
+
+          * Considers left, center and right images at each iteration based on the outcome of randomly generating a
+            float from 0 to 1.
+
+          * Finds the mean of all steering angles and augments 30% of all center camera steering angles, 40% of all
+            left and right camera steering samples and 30% of center camera steering samples with no augmentation.
+
+            Here is a more thorough breakdown of what the algorithm does for each sample:
+
+            * left steering angles < 0.01 from the mean:
+
+              * ~20% of all left curves get a 2x augmented steering angle with right camera image
+              * ~20% of all left curves get a 1.5x augmented steering angle with right camera image
+              * ~30% of all left curves get a 1.5x augmented steering angle with center camera image
+              * ~30% of all left curves get actual steering angle with center camera image
+
+            * right steering angles > 0.01 from the mean:
+
+              * ~20% of all right curves get a 2x augmented steering angle with left camera image
+              * ~20% of all right curves get a 1.5x augmented steering angle with left camera image
+              * ~30% of all right curves get a 1.5x augmented steering angle with center camera image
+              * ~30% of all right curves get actual steering angle with center camera image
+
+            * All samples in {-0.01 < np.mean(steering_angles) < 0.01} are trained using the true steering angle and
+              center camera image.
+
+          * Passes the selected camera image to preprocess_image for further augmentation
+
+          * randomly flips the image and steering angle 50% of the time to reduce bias towards a
+            specific steering angle/direction
         """
-        population = len(X)
-        counter = 0
+        _population = len(X)
+        _counter = 0
         _index_in_epoch = 0
-        _tot_epochs = 0
-        batch_size = min(batch_size, population)
-        batch_count = int(math.ceil(population / batch_size))
+        _batch_size = min(batch_size, _population)
+        _batch_count = int(math.ceil(_population / _batch_size))
 
         assert X.shape[0] == Y.shape[0], 'X and Y size must be identical.'
 
-        print('Batch generating against the {} dataset with population {} and shape {}'.format(label, population,
+        print('Batch generating against the {} dataset with population {} and shape {}'.format(label, _population,
                                                                                                X.shape))
         while True:
-            counter += 1
-            print('batch gen iter {}'.format(counter))
-            for i in range(batch_count):
+            _counter += 1
+            print('batch gen iter {}'.format(_counter))
+            for i in range(_batch_count):
                 start_i = _index_in_epoch
-                _index_in_epoch += batch_size
+                _index_in_epoch += _batch_size
                 # all items have been seen; reshuffle and reset counters
-                if _index_in_epoch >= population:
+                if _index_in_epoch >= _population:
                     # Save the classifier to support manual early stoppage
                     if classifier is not None:
                         classifier.save()
                     print('  sampled entire population. reshuffling deck and resetting all counters.')
-                    perm = np.arange(population)
+                    perm = np.arange(_population)
                     np.random.shuffle(perm)
                     X = X[perm]
                     Y = Y[perm]
                     start_i = 0
-                    _index_in_epoch = batch_size
-                    _tot_epochs += 1
-                end_i = min(_index_in_epoch, population)
+                    _index_in_epoch = _batch_size
+                end_i = min(_index_in_epoch, _population)
 
                 X_batch = []
                 y_batch = []
@@ -367,25 +397,25 @@ class Track1Dataset:
                     if steering_angle > r_thresh:
                         chance = random.random()
 
-                        # 20% of the right curves get a 2x augmented steering angle with left camera image
+                        # 20% of all right curves get a 2x augmented steering angle with left camera image
                         if chance > 0.8:
                             image_array = measurement.left_camera_view()
                             augmented_steering = steering_angle * 2.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of the right curves get a 1.75x augmented steering angle with left camera image
+                            # 20% of all right curves get a 1.75x augmented steering angle with left camera image
                             if chance > 0.6:
                                 image_array = measurement.left_camera_view()
                                 augmented_steering = steering_angle * 1.75
                                 steering_angle = augmented_steering
                             else:
-                                # 30% of left curves get a 1.5x augmented steering angle with center camera image
+                                # 30% of all right curves get a 1.5x augmented steering angle with center camera image
                                 if chance < 0.3:
                                     image_array = measurement.center_camera_view()
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 30% of left curves get actual steering angle with center camera image
+                                # 30% of all right curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
                     else:
@@ -475,6 +505,15 @@ class BaseNetwork:
                 colorspace=colorspace
             )
 
+        #checkpoint
+        filepath = self.__class__.__name__+"-weights-improvement-{epoch:02d}-{val_loss:.4f}-{val_acc:.2f}.hdf5"
+        checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+
+        #early stopping
+        earlystop = EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=1, mode='min')
+
+        callbacks_list = [checkpoint, earlystop]
+
         # Fit the model leveraging the custom
         # batch generator baked into the
         # dataset itself.
@@ -493,7 +532,8 @@ class BaseNetwork:
             samples_per_epoch=len(X_train),
             nb_val_samples=len(X_val),
             verbose=2,
-            validation_data=validation_data
+            validation_data=validation_data,
+            callbacks=callbacks_list
         )
 
         print(history.history)
@@ -576,6 +616,25 @@ class Nvidia(BaseNetwork):
 
 
 class Track1(BaseNetwork):
+    """
+        The Track1 network includes 5 convolution layers and an ELU activation that introduce non-linearity into
+        the model.
+
+        This network also includes a zero-mean normalization operator as the input layer. That will accelerate the
+        convergence of the model to the solution.
+
+        A 50% dropout operator that reduces the chance for overfitting by preventing units from co-adapting too much is
+        used after flattening the convolution layers.
+
+        A 50% dropout operator that reduces the chance for overfitting by preventing units from co-adapting too much is
+        used after the first fully connected dense layer.
+
+        Adam optimizer with 0.001 learning rate (default) used in this network.
+
+        Mean squared error loss function was used since this is a regression problem and MSE is quite common and robust
+        for regression analysis.
+    """
+
     NETWORK_NAME = 'track1'
 
     def fit(
@@ -603,7 +662,7 @@ class Track1(BaseNetwork):
             use_weights=False
     ):
         """
-        Inital zero-mean normalization input layer.
+        Initial zero-mean normalization input layer.
         A 4-layer deep neural network with 4 fully connected layers at the top.
         ELU activation used on each convolution layer.
         Dropout of 50% (default) used after initially flattening after convolution layers.
@@ -621,6 +680,7 @@ class Track1(BaseNetwork):
             model.add(Lambda(lambda x: x / 255 - 0.5,
                              input_shape=input_shape,
                              output_shape=input_shape))
+            model.add(Dropout(dropout_prob))
             model.add(Convolution2D(24, 5, 5, border_mode='valid', activation=activation))
             model.add(MaxPooling2D(pool_size=(2, 2)))
             model.add(Convolution2D(36, 5, 5, border_mode='valid', activation=activation))
@@ -633,8 +693,11 @@ class Track1(BaseNetwork):
             model.add(Dense(1024, activation=activation))
             model.add(Dropout(dropout_prob))
             model.add(Dense(100, activation=activation))
+            model.add(Dropout(dropout_prob))
             model.add(Dense(50, activation=activation))
+            model.add(Dropout(dropout_prob))
             model.add(Dense(10, activation=activation))
+            model.add(Dropout(dropout_prob))
             model.add(Dense(1, activation=activation, init='normal'))
 
         optimizer = Adam(lr=learning_rate)
