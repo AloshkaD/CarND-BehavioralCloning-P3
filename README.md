@@ -144,7 +144,7 @@ hand picking manually as in SGD.
 
 All training data was collected in the Self-Driving Car simulator on Mac OS using a Playstation 3 controller. 
 
-I recorded myself driving around the track in the center lane approximately 4 times. At each point in autonomous mode where the car vered off in a non-safe manner, I would record recovery data but hugging the left or right shoulder then recording myself gracefully swirve into the middle of the lane.
+I recorded myself driving around the track in the center lane approximately 4 times. At each point in autonomous mode where the car vered off in a non-safe manner, I would record recovery data by hugging the left or right shoulder then recording myself gracefully steer into the middle of the lane. This took a lot of time but the effort paid off in the end.
 
 Once I felt I collected enough training samples (~21k), I committed driving_log.csv and all images in the IMG directory to this GitHub repository.
 
