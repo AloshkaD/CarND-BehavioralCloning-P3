@@ -507,10 +507,10 @@ class BaseNetwork:
 
         #checkpoint
         filepath = self.__class__.__name__+"-weights-improvement-{epoch:02d}-{val_loss:.4f}-{val_acc:.2f}.hdf5"
-        checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+        checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 
         #early stopping
-        earlystop = EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=1, mode='min')
+        earlystop = EarlyStopping(monitor='loss', min_delta=0, patience=0, verbose=1, mode='min')
 
         callbacks_list = [checkpoint, earlystop]
 
