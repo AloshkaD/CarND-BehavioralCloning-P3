@@ -96,3 +96,4 @@ IMG1
 # driving_log.csv
 *.app
 udacity_data.zip
+*.hdf5

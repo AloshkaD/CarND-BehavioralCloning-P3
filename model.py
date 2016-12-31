@@ -200,7 +200,7 @@ class Track1Dataset:
 
     DRIVING_LOG_PATH = './driving_log.csv'
 
-    def __init__(self, validation_split_percentage=0.2, test_split_percentage=0.05):
+    def __init__(self, validation_split_percentage=0.2):
         self.X_train = []
         self.X_val = []
 
@@ -212,12 +212,11 @@ class Track1Dataset:
         self.headers = []
         self.__loaded = False
 
-        self.__load(validation_split_percentage=validation_split_percentage,
-                    test_split_percentage=test_split_percentage)
+        self.__load(validation_split_percentage=validation_split_percentage)
 
         assert self.__loaded == True, 'The dataset was not loaded. Perhaps driving_log.csv is missing.'
 
-    def __load(self, validation_split_percentage, test_split_percentage):
+    def __load(self, validation_split_percentage):
         """
         Splits the training data into a validation and test dataset.
 
@@ -437,12 +436,6 @@ class Track1Dataset:
         return '\n'.join(results)
 
 
-def load_dataset():
-    dataset = Track1Dataset()
-    print(dataset)
-    return dataset
-
-
 def visualize_dataset(dataset):
     dataset.dataframe.plot.hist(alpha=0.5)
     dataset.dataframe['steering'].plot.hist(alpha=0.5)
@@ -594,9 +587,9 @@ class Nvidia(BaseNetwork):
         return model
 
 
-class Track1(BaseNetwork):
+class ZimNet(BaseNetwork):
     """
-        The Track1 network includes 5 convolution layers and an ELU activation that introduce non-linearity into
+        The ZimNet network includes 5 convolution layers and an ELU activation that introduce non-linearity into
         the model.
 
         This network also includes a zero-mean normalization operator as the input layer. That will accelerate the
@@ -614,7 +607,7 @@ class Track1(BaseNetwork):
         for regression analysis.
     """
 
-    NETWORK_NAME = 'track1'
+    NETWORK_NAME = 'zimnet'
 
     def fit(
             self,
@@ -624,7 +617,7 @@ class Track1(BaseNetwork):
             output_shape=(20, 40, 3),
             colorspace='yuv'
     ):
-        super(Track1, self).fit(
+        super(ZimNet, self).fit(
             batch_generator, X_train, y_train, X_val, y_val,
             nb_epoch=nb_epoch,
             batch_size=batch_size,
@@ -687,7 +680,8 @@ class Track1(BaseNetwork):
 
 
 def train_network(
-        classifier='track1',
+        classifier=ZimNet.NETWORK_NAME,
+        validation_split_percentage=0.2,
         nb_epoch=2,
         batch_size=32,
         learning_rate=0.001,
@@ -696,15 +690,17 @@ def train_network(
         use_weighs=False,
         colorspace='yuv'
 ):
-    dataset = load_dataset()
+    dataset = Track1Dataset(validation_split_percentage=validation_split_percentage)
+    print(dataset)
+
     assert len(dataset.X_train) > 0, 'There is no training data available to train against.'
     if len(dataset.X_train) > 0:
         print('Center camera view shape:\n\n{}\n'.format(dataset.X_train[0].center_camera_view().shape))
         print(dataset.X_train[0])
 
     # instantiate proper classifier
-    if classifier.lower() == Track1.NETWORK_NAME:
-        clf = Track1()
+    if classifier.lower() == ZimNet.NETWORK_NAME:
+        clf = ZimNet()
     elif classifier.lower() == Nvidia.NETWORK_NAME:
         clf = Nvidia()
 
@@ -735,12 +731,13 @@ def train_network(
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('classifier', 'track1', "The network to train.")
+flags.DEFINE_string('classifier', ZimNet.NETWORK_NAME, "The network to train.")
 flags.DEFINE_integer('epochs', 2, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 flags.DEFINE_boolean('use_weights', False, "Whether to use prior trained weights.")
 flags.DEFINE_float('lr', 0.001, "Optimizer learning rate.")
 flags.DEFINE_float('dropout_prob', 0.5, "Percentage of neurons to misfire during training.")
+flags.DEFINE_float('validation_split_percentage', 0.2, "Percentage of training data to split into a validation set.")
 flags.DEFINE_string('activation', 'elu', "The activation function used by the network.")
 flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to during preprocessing phase.")
 
@@ -748,6 +745,7 @@ flags.DEFINE_string('colorspace', 'yuv', "The colorspace to convert images to du
 def main(_):
     train_network(
         classifier=FLAGS.classifier,
+        validation_split_percentage=FLAGS.validation_split_percentage,
         nb_epoch=FLAGS.epochs,
         batch_size=FLAGS.batch_size,
         learning_rate=FLAGS.lr,
