@@ -1,20 +1,19 @@
-import numpy as np
-import pandas as pd
 import json
-import uuid
+import math
 import os
 import random
-import cv2
-import math
+import uuid
 
+import cv2
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-from scipy import misc
 from keras.layers import Convolution2D, MaxPooling2D, Dropout, Flatten, Dense, Lambda
 from keras.models import Sequential, model_from_json
 from keras.optimizers import Adam
+from scipy import misc
 from sklearn.model_selection import train_test_split
-
-import tensorflow as tf
 
 
 class RecordingMeasurement:
@@ -196,9 +195,6 @@ class Track1Dataset:
         * X_val - A set of examples used to tune the hyperparameters [i.e., architecture, not weights] of a
                        classifier, for example to choose the number of hidden units in a neural network.
 
-        * X_test - A set of examples used only to assess the performance [generalization] of a fully-specified
-                   classifier.
-
         * y_train, y_val, y_test - The steering angle corresponding to their respective X features.
     """
 
@@ -207,7 +203,6 @@ class Track1Dataset:
     def __init__(self, validation_split_percentage=0.2, test_split_percentage=0.05):
         self.X_train = []
         self.X_val = []
-        self.X_test = []
 
         self.y_train = []
         self.y_val = []
@@ -230,9 +225,6 @@ class Track1Dataset:
 
         * X_val - A set of examples used to tune the hyperparameters [i.e., architecture, not weights] of a
                        classifier, for example to choose the number of hidden units in a neural network.
-
-        * X_test - A set of examples used only to assess the performance [generalization] of a fully-specified
-                   classifier.
 
         * y_train, y_val, y_test - The steering angle corresponding to their respective X features.
         """
@@ -264,23 +256,11 @@ class Track1Dataset:
             X_train, y_train, X_val, y_val = np.array(X_train), np.array(y_train, dtype=np.float32), \
                                              np.array(X_val), np.array(y_val, dtype=np.float32)
 
-            # generate the test set
-            X_train, X_test, y_train, y_test = train_test_split(
-                X_train,
-                y_train,
-                test_size=test_split_percentage,
-                random_state=0)
-
-            X_train, y_train, X_test, y_test = np.array(X_train), np.array(y_train, dtype=np.float32), \
-                                               np.array(X_test), np.array(y_test, dtype=np.float32)
-
             self.X_train = X_train
             self.X_val = X_val
-            self.X_test = X_test
 
             self.y_train = y_train
             self.y_val = y_val
-            self.y_test = y_test
 
             self.dataframe = df
             self.headers = headers
@@ -450,9 +430,6 @@ class Track1Dataset:
         results.append('')
         results.append('    validation features: {}'.format(self.X_val.shape))
         results.append('    validation labels: {}'.format(self.y_val.shape))
-        results.append('')
-        results.append('    test features: {}'.format(self.X_test.shape))
-        results.append('    test labels: {}'.format(self.y_test.shape))
         results.append('')
         results.append('  [Dataframe sample]')
         results.append('')
@@ -751,14 +728,6 @@ def train_network(
         batch_size=batch_size,
         colorspace=colorspace
     )
-
-    # This has the unfortunate side-effect of loading all test set images into memory
-    # To save on memory, I'd write my own batch generator
-    test_score = model.evaluate(
-        np.array(list(map(lambda x: preprocess_image(x.center_camera_view(), clf.output_shape), dataset.X_test))),
-        dataset.y_test, verbose=1)
-    print('Test score:', test_score[0])
-    print('Test accuracy:', test_score[1])
 
 
 # start
