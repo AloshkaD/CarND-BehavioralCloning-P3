@@ -351,16 +351,16 @@ class Track1Dataset:
                     if steering_angle < l_thresh:
                         chance = random.random()
 
-                        # 20% of the left curves get a 2x augmented steering angle with right camera image
-                        if chance > 0.8:
+                        # 25% of the left curves get a 3Ox augmented steering angle with right camera image
+                        if chance > 0.75:
                             image_array = measurement.right_camera_view()
-                            augmented_steering = steering_angle * 2.0
+                            augmented_steering = steering_angle * 3.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of the left curves get a 1.5x augmented steering angle with right camera image
-                            if chance > 0.6:
+                            # 25% of the left curves get a 1.5x augmented steering angle with right camera image
+                            if chance > 0.5:
                                 image_array = measurement.right_camera_view()
-                                augmented_steering = steering_angle * 1.5
+                                augmented_steering = steering_angle * 2.25
                                 steering_angle = augmented_steering
                             else:
                                 # 30% of left curves get a 1.5x augmented steering angle with center camera image
@@ -369,23 +369,23 @@ class Track1Dataset:
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 30% of left curves get actual steering angle with center camera image
+                                # 20% of left curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
 
                     if steering_angle > r_thresh:
                         chance = random.random()
 
-                        # 20% of all right curves get a 2x augmented steering angle with left camera image
-                        if chance > 0.8:
+                        # 25% of all right curves get a 3x augmented steering angle with left camera image
+                        if chance > 0.75:
                             image_array = measurement.left_camera_view()
-                            augmented_steering = steering_angle * 2.0
+                            augmented_steering = steering_angle * 3.0
                             steering_angle = augmented_steering
                         else:
-                            # 20% of all right curves get a 1.75x augmented steering angle with left camera image
-                            if chance > 0.6:
+                            # 25% of all right curves get a 2.25x augmented steering angle with left camera image
+                            if chance > 0.5:
                                 image_array = measurement.left_camera_view()
-                                augmented_steering = steering_angle * 1.75
+                                augmented_steering = steering_angle * 2.25
                                 steering_angle = augmented_steering
                             else:
                                 # 30% of all right curves get a 1.5x augmented steering angle with center camera image
@@ -394,7 +394,7 @@ class Track1Dataset:
                                     augmented_steering = steering_angle * 1.5
                                     steering_angle = augmented_steering
 
-                                # 30% of all right curves get actual steering angle with center camera image
+                                # 20% of all right curves get actual steering angle with center camera image
                                 else:
                                     image_array = measurement.center_camera_view()
                     else:
@@ -649,10 +649,10 @@ class ZimNet(BaseNetwork):
             model = self.restore()
         if model is None:
             model = Sequential()
-            model.add(Lambda(lambda x: x / 255 - 0.5,
+            model.add(Lambda(lambda x: x / 255.0 - 0.5,
                              input_shape=input_shape,
                              output_shape=input_shape))
-            model.add(Dropout(dropout_prob))
+            # model.add(Dropout(dropout_prob))
             model.add(Convolution2D(24, 5, 5, border_mode='valid', activation=activation))
             model.add(MaxPooling2D(pool_size=(2, 2)))
             model.add(Convolution2D(36, 5, 5, border_mode='valid', activation=activation))
@@ -669,7 +669,7 @@ class ZimNet(BaseNetwork):
             model.add(Dense(50, activation=activation))
             model.add(Dropout(dropout_prob))
             model.add(Dense(10, activation=activation))
-            model.add(Dropout(dropout_prob))
+            # model.add(Dropout(dropout_prob))
             model.add(Dense(1, activation=activation, init='normal'))
 
         optimizer = Adam(lr=learning_rate)
