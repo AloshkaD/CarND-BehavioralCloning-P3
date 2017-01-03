@@ -156,4 +156,4 @@ Once I felt I collected enough training samples (~21k), I committed driving_log.
 
 I trained the network on a g2.2xlarge EC2 instance, saved the model and weights persisted as model.json and model.h5 respectively, `scp`ed model.json and model.h5 to my machine, then tested the model in autonomous mode using `drive.py`.
 
-In addition, I revived an old PC with an Nvidia GeForce 670 with 2 GB of GPU RAM and installed Ubuntu Studio 16.04 on it. It trained a single epoch in 60-70s which worked great with my memory optimized batch generator.
+In addition, I revived an old PC with an Nvidia GeForce 670 with 2 GB of GPU RAM and installed Ubuntu Studio 16.04 on it. This GPU has a 3.0 CUDA GPU compute rating. It trained a single epoch in 60-70s which worked great with my memory optimized batch generator.
