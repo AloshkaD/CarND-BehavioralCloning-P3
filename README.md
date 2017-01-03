@@ -22,7 +22,7 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 #### CLI Commands
 ##### Train the Network (using driving_log.csv and all images in IMG)
 
-`$ python3 model.py --network track1 --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
+`$ python3 model.py --network zimnet --lr 0.001 --epochs 2 --batch_size 128 --dropout_prob 0.5 --activation elu --colorspace yuv --use_weights False`
 
 ##### Start client to send signals to the simulator in Autonomous Mode
 
@@ -33,7 +33,7 @@ The rubric for this project may be found [here](https://review.udacity.com/#!/ru
 
 ##### Overview
 
-I present to you in this project a hand crafted, end-to-end deep learning, convolutional neural network (CNN) which performs well on the first track. It also generalizes well on the second track in some Graphics Quality settings such as Fastest and Fast.
+I present to you in this project a hand crafted, end-to-end deep learning, convolutional neural network (CNN) which performs well on the first track. My network [generalizes well on the second track](https://www.youtube.com/watch?v=Srzk2NvhMqM) in some Graphics Quality settings such as Fastest and Fast. Additional brightness augmentation is required in order to generalize to higher graphics qualities.
 
 Before I arrived at my final architecture, I implemented and trained against several well-know network architectures such as [CommaAI's](https://github.com/commaai/research/blob/master/train_steering_model.py) and [Nvidia's End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf). While exploring and researching each component used in both of those networks, I learned a lot about the various activation and optimization functions, dropout, etc.
 
@@ -83,19 +83,23 @@ maxpooling2d_3 (MaxPooling2D)    (None, 1, 3, 48)      0           convolution2d
 ____________________________________________________________________________________________________
 convolution2d_4 (Convolution2D)  (None, 1, 3, 64)      27712       maxpooling2d_3[0][0]             
 ____________________________________________________________________________________________________
-flatten_1 (Flatten)              (None, 192)           0           convolution2d_4[0][0]            
+dropout_1 (Dropout)              (None, 1, 3, 64)      0           convolution2d_4[0][0]            
 ____________________________________________________________________________________________________
-dropout_1 (Dropout)              (None, 192)           0           flatten_1[0][0]                  
+flatten_1 (Flatten)              (None, 192)           0           dropout_1[0][0]                  
 ____________________________________________________________________________________________________
-dense_1 (Dense)                  (None, 1024)          197632      dropout_1[0][0]                  
+dense_1 (Dense)                  (None, 1024)          197632      flatten_1[0][0]                  
 ____________________________________________________________________________________________________
 dropout_2 (Dropout)              (None, 1024)          0           dense_1[0][0]                    
 ____________________________________________________________________________________________________
 dense_2 (Dense)                  (None, 100)           102500      dropout_2[0][0]                  
 ____________________________________________________________________________________________________
-dense_3 (Dense)                  (None, 50)            5050        dense_2[0][0]                    
+dropout_3 (Dropout)              (None, 100)           0           dense_2[0][0]                    
 ____________________________________________________________________________________________________
-dense_4 (Dense)                  (None, 10)            510         dense_3[0][0]                    
+dense_3 (Dense)                  (None, 50)            5050        dropout_3[0][0]                  
+____________________________________________________________________________________________________
+dropout_4 (Dropout)              (None, 50)            0           dense_3[0][0]                    
+____________________________________________________________________________________________________
+dense_4 (Dense)                  (None, 10)            510         dropout_4[0][0]                  
 ____________________________________________________________________________________________________
 dense_5 (Dense)                  (None, 1)             11          dense_4[0][0]                    
 ====================================================================================================
@@ -105,7 +109,7 @@ ________________________________________________________________________________
 
 #### Network Breakdown
 
-The network architecture I ultimately chose is a simple 4-layer convolutional neural network with 4 fully connected layers along with 50% dropout after flattening the data as well as after the first FC layer. This led to a grand total of 400,123 parameters.
+The network architecture I ultimately chose is a simple 4-layer convolutional neural network with 4 fully connected layers along with 50% dropout after each fully connected layer. This led to a grand total of 400,123 parameters.
 
 I leveraged [Keras' Lamda layer](https://keras.io/layers/core/#lambda) as my input layer to normalize all input features on the GPU since it could do it much faster than on a CPU.
 
@@ -152,4 +156,4 @@ Once I felt I collected enough training samples (~21k), I committed driving_log.
 
 I trained the network on a g2.2xlarge EC2 instance, saved the model and weights persisted as model.json and model.h5 respectively, `scp`ed model.json and model.h5 to my machine, then tested the model in autonomous mode using `drive.py`.
 
-
+In addition, I revived an old PC with an Nvidia GeForce 670 with 2 GB of GPU RAM and installed Ubuntu Studio 16.04 on it. This GPU has a 3.0 CUDA GPU compute rating. It trained a single epoch in 60-70s which worked great with my memory optimized batch generator.
